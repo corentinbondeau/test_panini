@@ -1,0 +1,63 @@
+// This is your Prisma schema file
+// MongoDB with Prisma documentation: https://pris.ly/d/mongodb
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String   // hashed password
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collection      UserCollection?
+  sentExchanges   Exchange[]      @relation("Requester")
+  receivedExchanges Exchange[]    @relation("Recipient")
+}
+
+// User's card collection
+model UserCollection {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  
+  // Store cards as JSON: { cardId: quantity, ... }
+  cards Json @default("{}")
+  
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Exchange system between users
+model Exchange {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  requesterId      String   @db.ObjectId
+  recipientId      String   @db.ObjectId
+  
+  // Cards being offered/requested (stored as JSON: { cardId: quantity, ... })
+  offeredCards     Json     // what requester is offering
+  requestedCards   Json     // what requester wants
+  
+  status           String   @default("pending") // pending, accepted, rejected, completed
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  recipient User @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId])
+  @@index([recipientId])
+  @@index([status])
+}

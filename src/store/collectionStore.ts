@@ -16,6 +16,7 @@ type CollectionState = {
   quantities: Record<string, number>;
   lastDrawCardId: string | null;
   lastDrawWasDuplicate: boolean;
+  syncError: string | null;
   addCard: (cardId: string, amount?: number) => void;
   setQuantity: (cardId: string, quantity: number) => void;
   removeCard: (cardId: string, amount?: number) => void;
@@ -23,6 +24,8 @@ type CollectionState = {
   openBoosterPack: () => BoosterCardDraw[];
   resetCollection: () => void;
   getQuantity: (cardId: string) => number;
+  syncToServer: (token: string) => Promise<void>;
+  loadFromServer: (token: string) => Promise<void>;
 };
 
 const safeStorage = createJSONStorage(() => localStorage);
@@ -33,6 +36,7 @@ export const useCollectionStore = create<CollectionState>()(
       quantities: {},
       lastDrawCardId: null,
       lastDrawWasDuplicate: false,
+      syncError: null,
 
       addCard: (cardId, amount = 1) =>
         set((state) => {
@@ -118,7 +122,44 @@ export const useCollectionStore = create<CollectionState>()(
           lastDrawWasDuplicate: false
         }),
 
-      getQuantity: (cardId) => get().quantities[cardId] ?? 0
+      getQuantity: (cardId) => get().quantities[cardId] ?? 0,
+
+      syncToServer: async (token: string) => {
+        try {
+          const quantities = get().quantities;
+          for (const [cardId, quantity] of Object.entries(quantities)) {
+            await fetch('/api/collection', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ cardId, quantity }),
+            });
+          }
+          set({ syncError: null });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Sync failed';
+          set({ syncError: errorMessage });
+        }
+      },
+
+      loadFromServer: async (token: string) => {
+        try {
+          const response = await fetch('/api/collection', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const serverCards = data.collection.cards as Record<string, number>;
+            set({ quantities: serverCards, syncError: null });
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Load failed';
+          set({ syncError: errorMessage });
+        }
+      },
     }),
     {
       name: "panini-collection-v2",

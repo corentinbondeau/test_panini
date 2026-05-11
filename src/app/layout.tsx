@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import styles from "./layout.module.css";
+import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "ECC Panini - Collection",
@@ -13,15 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body>
         <div className={styles.shell}>
-          <header className={styles.header}>
-            <h1>ECC Panini</h1>
-            <nav>
-              <Link href="/">Accueil</Link>
-              <Link href="/booster">Booster</Link>
-              <Link href="/album">Album</Link>
-              <Link href="/doubles">Mes Doubles</Link>
-            </nav>
-          </header>
+          <Header />
           <main className={styles.main}>{children}</main>
         </div>
       </body>
