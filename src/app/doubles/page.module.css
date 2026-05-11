@@ -1,0 +1,148 @@
+.note {
+  color: #f7d76d;
+}
+
+.exchangeBox {
+  margin: 12px 0 18px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #1f4f91;
+  background: #0d274e;
+}
+
+.exchangeBox h3 {
+  margin: 0 0 10px;
+}
+
+.exchangeActions {
+  display: grid;
+  gap: 10px;
+}
+
+.shareVisible {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(18, 50, 95, 0.55);
+}
+
+.shareVisible p {
+  margin: 0 0 8px;
+  color: #d7e7ff;
+}
+
+.codeArea {
+  width: 100%;
+  min-height: 78px;
+  border-radius: 10px;
+  border: 1px solid #3c6cab;
+  background: #12325f;
+  color: #e8f1ff;
+  padding: 10px;
+  resize: vertical;
+}
+
+.shareLink a {
+  color: #f7d76d;
+  word-break: break-all;
+}
+
+.exchangeActions > button,
+.importArea button,
+.manualTrade button {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #f3c623;
+  color: #12294f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.importArea {
+  display: grid;
+  gap: 8px;
+}
+
+.importArea textarea {
+  width: 100%;
+  min-height: 84px;
+  border-radius: 10px;
+  border: 1px solid #3c6cab;
+  background: #12325f;
+  color: #e8f1ff;
+  padding: 10px;
+  resize: vertical;
+}
+
+.error {
+  color: #ffd0d0;
+}
+
+.tradeSummary p {
+  margin: 6px 0;
+  color: #d7e7ff;
+}
+
+.suggestionList {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(18, 50, 95, 0.6);
+}
+
+.suggestionList h4,
+.manualTrade h4 {
+  margin: 0 0 8px;
+}
+
+.suggestionList p {
+  margin: 5px 0;
+}
+
+.manualTrade {
+  margin-top: 12px;
+}
+
+.selectRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.selectRow select {
+  border-radius: 10px;
+  border: 1px solid #3c6cab;
+  background: #12325f;
+  color: #e8f1ff;
+  padding: 8px;
+}
+
+.manualTrade button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.preview {
+  margin: 8px 0 0;
+  color: #d7e7ff;
+}
+
+.empty {
+  color: #d7e7ff;
+  padding: 10px 12px;
+  background: #12325f;
+  border-radius: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .selectRow {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,29 @@
+.page {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+.left,
+.right {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.left button {
+  justify-self: start;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  background: #f3c623;
+  color: #12294f;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+}

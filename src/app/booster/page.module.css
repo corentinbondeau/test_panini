@@ -1,0 +1,125 @@
+.page {
+  display: grid;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  background: #f3c623;
+  color: #12294f;
+  cursor: pointer;
+}
+
+.header button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.note {
+  margin: 0;
+  color: #d7e7ff;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.card {
+  border-radius: 14px;
+  border: 1px solid #1f4f91;
+  min-height: 220px;
+  background: linear-gradient(180deg, #113567 0%, #0a2142 100%);
+  padding: 12px;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  color: #99b8e8;
+  border-style: dashed;
+}
+
+.revealed {
+  animation: reveal 360ms ease-out;
+}
+
+.newCard {
+  box-shadow: 0 0 0 1px rgba(135, 185, 255, 0.4);
+}
+
+.duplicate {
+  box-shadow: 0 0 0 1px rgba(255, 212, 71, 0.8), 0 0 20px rgba(255, 212, 71, 0.5);
+}
+
+.badges {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.role {
+  background: #12325f;
+  color: #d7e7ff;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.doubleBadge {
+  background: #ffd447;
+  color: #12294f;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.card h3 {
+  margin: 10px 0 6px;
+}
+
+.meta {
+  margin: 0;
+  color: #c1dbff;
+  text-transform: capitalize;
+}
+
+.photoWrap {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #1f4f91;
+  background: #0b1f3f;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+}
+
+@keyframes reveal {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

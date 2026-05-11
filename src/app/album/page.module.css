@@ -1,0 +1,9 @@
+.note {
+  color: #f7d76d;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}

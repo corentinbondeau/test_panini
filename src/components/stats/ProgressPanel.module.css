@@ -1,0 +1,39 @@
+.wrapper {
+  background: #0d274e;
+  border: 1px solid #1f4f91;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.wrapper h2 {
+  margin: 0 0 8px;
+}
+
+.global {
+  margin: 6px 0;
+  color: #d7e7ff;
+}
+
+.roleBlock {
+  margin-top: 12px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.92rem;
+}
+
+.bar {
+  height: 10px;
+  background: #12325f;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar span {
+  height: 100%;
+  display: block;
+  background: linear-gradient(90deg, #f3c623 0%, #ffd447 100%);
+}

@@ -1,0 +1,47 @@
+.booster {
+  background: #0d274e;
+  border: 1px solid #1f4f91;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.booster h2 {
+  margin: 0 0 10px;
+}
+
+.openLink {
+  display: inline-block;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  background: #f3c623;
+  color: #12294f;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.result {
+  margin-top: 12px;
+  background: #12325f;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.duplicate {
+  animation: duplicateGlow 1s ease-in-out infinite alternate;
+}
+
+.helper {
+  color: #d7e7ff;
+  margin-bottom: 12px;
+}
+
+@keyframes duplicateGlow {
+  from {
+    box-shadow: 0 0 0 rgba(255, 212, 71, 0.15);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(255, 212, 71, 0.55);
+  }
+}

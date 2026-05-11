@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  --club-blue-950: #071429;
+  --club-blue-900: #0b1f3f;
+  --club-blue-800: #133566;
+  --club-blue-700: #1f4f91;
+  --club-blue-300: #87b9ff;
+  --club-yellow-500: #f3c623;
+  --club-yellow-400: #ffd447;
+  --text-main: #f1f6ff;
+  --text-soft: #c3d8ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: radial-gradient(circle at top right, #123668 0%, var(--club-blue-950) 40%);
+  color: var(--text-main);
+}
+
+a {
+  color: inherit;
+}
