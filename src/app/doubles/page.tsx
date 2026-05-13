@@ -114,13 +114,13 @@ export default function DoublesPage() {
           <div className={styles.tradeSummary}>
             <p>Le partenaire propose {partnerTradeable.length} cartes différentes en double.</p>
             <p>Il te manque {cardsIWantFromThem.length} cartes que le partenaire peut échanger.</p>
-            <p>Le partenaire n&apos;a pas {cardsTheyNeedFromMe.length} de tes cartes échangeables.</p>
+            <p>{"Le partenaire n'a pas "}{cardsTheyNeedFromMe.length}{" de tes cartes échangeables."}</p>
           </div>
         ) : null}
 
         {partnerDoubles && suggestedTrades.length > 0 ? (
           <div className={styles.suggestionList}>
-            <h4>Suggestions d&apos;échange</h4>
+            <h4>{"Suggestions d'échange"}</h4>
             {suggestedTrades.map((trade, index) => (
               <p key={`${trade.give.id}-${trade.receive.id}`}>
                 {index + 1}. Donner <strong>{trade.give.firstName} {trade.give.lastName}</strong> contre <strong>{trade.receive.firstName} {trade.receive.lastName}</strong>
@@ -150,7 +150,7 @@ export default function DoublesPage() {
                 ))}
               </select>
               <button onClick={executeTrade} disabled={!selectedGiveId || !selectedReceiveId}>
-                Valider l&apos;échange
+                {"Valider l'échange"}
               </button>
             </div>
             {selectedGiveId && selectedReceiveId ? (
@@ -164,7 +164,7 @@ export default function DoublesPage() {
       </div>
 
       {sorted.length === 0 ? (
-        <p className={styles.empty}>Aucun double pour l&apos;instant. Ouvre quelques boosters !</p>
+        <p className={styles.empty}>{"Aucun double pour l'instant. Ouvre quelques boosters !"}</p>
       ) : (
         <div className={styles.grid}>
           {sorted.map((card) => (

@@ -52,7 +52,7 @@ export default function AuthPage() {
           {isRegister ? (
             <p>Vous avez déjà un compte? <button onClick={() => setIsRegister(false)}>Se connecter</button></p>
           ) : (
-            <p>Pas encore de compte? <button onClick={() => setIsRegister(true)}>S'inscrire</button></p>
+            <p>Pas encore de compte? <button onClick={() => setIsRegister(true)}>{"S'inscrire"}</button></p>
           )}
         </div>
       </div>

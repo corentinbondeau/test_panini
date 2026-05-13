@@ -26,3 +26,41 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-soft);
+}
+
+.protected {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--club-blue-900);
+  border-radius: 12px;
+  border: 1px solid var(--club-blue-700);
+}
+
+.protected h2 {
+  margin: 0 0 0.5rem;
+}
+
+.protected p {
+  color: var(--text-soft);
+  margin: 0 0 1.5rem;
+}
+
+.loginLink {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.loginLink:hover {
+  opacity: 0.85;
+}

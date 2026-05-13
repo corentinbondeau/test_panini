@@ -118,7 +118,7 @@ export default function ComptePage() {
             Choisis une carte de ta collection :
           </p>
           {ownedCards.length === 0 ? (
-            <p style={{ color: 'var(--text-soft)' }}>Tu n&apos;as pas encore de cartes. Ouvre des boosters !</p>
+            <p style={{ color: 'var(--text-soft)' }}>{"Tu n'as pas encore de cartes. Ouvre des boosters !"}</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: 8 }}>
               {ownedCards.map((card) => (
