@@ -29,7 +29,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
     try {
       await register(email, password, name);
       onSuccess?.();
-    } catch (err) {
+    } catch {
       // Error is handled by the store
     }
   };

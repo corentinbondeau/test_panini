@@ -2,77 +2,80 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #f9f9f9;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--club-blue-800) 0%, var(--club-blue-900) 100%);
+  border: 1px solid var(--club-blue-700);
 }
 
 .form h2 {
   margin-top: 0;
   text-align: center;
-  color: #333;
+  color: var(--club-yellow-500);
 }
 
 .formGroup {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .formGroup label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-weight: 600;
-  color: #555;
+  color: var(--text-soft);
+  font-size: 0.9rem;
 }
 
 .formGroup input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--club-blue-700);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--club-blue-950);
+  color: var(--text-main);
+  transition: border-color 0.2s;
   box-sizing: border-box;
-  transition: border-color 0.3s;
 }
 
 .formGroup input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: var(--club-yellow-500);
+  box-shadow: 0 0 0 2px rgba(243, 198, 35, 0.15);
 }
 
 .formGroup input:disabled {
-  background: #f5f5f5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .error {
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
   margin-bottom: 1rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 4px;
-  color: #c33;
-  font-size: 0.95rem;
+  background: rgba(255, 80, 80, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  border-radius: 8px;
+  color: #ff8080;
+  font-size: 0.9rem;
 }
 
 .form button {
   width: 100%;
-  padding: 0.75rem;
-  background: #4a90e2;
-  color: white;
+  padding: 0.7rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: opacity 0.2s;
 }
 
 .form button:hover:not(:disabled) {
-  background: #357abd;
+  opacity: 0.85;
 }
 
 .form button:disabled {
-  background: #ccc;
+  opacity: 0.5;
   cursor: not-allowed;
 }

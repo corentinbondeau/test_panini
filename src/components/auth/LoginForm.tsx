@@ -14,7 +14,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
     try {
       await login(email, password);
       onSuccess?.();
-    } catch (err) {
+    } catch {
       // Error is handled by the store
     }
   };

@@ -2,21 +2,23 @@ import type { Metadata } from "next";
 import "./globals.css";
 import styles from "./layout.module.css";
 import { Header } from "@/components/Header";
-import Head from "next/head";
 
 export const metadata: Metadata = {
   title: "ECC Panini - Collection",
-  description: "Album de collection avec gestion des doubles et préparation aux échanges."
+  description: "ECC Panini - Album de collection de cartes du club",
+  icons: {
+    icon: [
+      { url: "/logo.jpg", type: "image/jpeg" },
+      { url: "/logo.jpg", sizes: "32x32", type: "image/jpeg" },
+      { url: "/logo.jpg", sizes: "96x96", type: "image/jpeg" },
+    ],
+    apple: [{ url: "/logo.jpg", sizes: "180x180", type: "image/jpeg" }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <Head>
-        <link rel="icon" href="/logo.jpg" type="image/jpeg" />
-        <title>ECC Panini - Collection</title>
-        <meta name="description" content="Album de collection avec gestion des doubles et préparation aux échanges." />
-      </Head>
       <body>
         <div className={styles.shell}>
           <Header />

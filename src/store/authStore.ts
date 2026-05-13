@@ -23,6 +23,7 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  updateProfile: (data: { name?: string; email?: string; avatar?: string }) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -129,6 +130,37 @@ export const useAuthStore = create<AuthStore>((set) => ({
     } catch (error) {
       set({ user: null, token: null });
       localStorage.removeItem('token');
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  updateProfile: async (data) => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Non authentifié');
+
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch('/api/auth/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Échec de la mise à jour');
+      }
+
+      const result = await response.json();
+      set({ user: result.user, error: null });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Échec de la mise à jour';
+      set({ error: errorMessage });
+      throw error;
     } finally {
       set({ isLoading: false });
     }

@@ -88,7 +88,7 @@ export default function DoublesPage() {
 
   return (
     <section>
-      <h2>Mes Doubles</h2>
+      <h2>Mes doubles</h2>
       <p className={styles.note}>Cartes possédées au moins en 2 exemplaires.</p>
 
       <div className={styles.exchangeBox}>
@@ -123,7 +123,7 @@ export default function DoublesPage() {
             <h4>Suggestions d&apos;échange</h4>
             {suggestedTrades.map((trade, index) => (
               <p key={`${trade.give.id}-${trade.receive.id}`}>
-                {index + 1}. Donner <strong>{trade.give.name}</strong> contre <strong>{trade.receive.name}</strong>
+                {index + 1}. Donner <strong>{trade.give.firstName} {trade.give.lastName}</strong> contre <strong>{trade.receive.firstName} {trade.receive.lastName}</strong>
               </p>
             ))}
           </div>
@@ -137,7 +137,7 @@ export default function DoublesPage() {
                 <option value="">Je donne...</option>
                 {myTradeable.map((card) => (
                   <option key={card.id} value={card.id}>
-                    {card.name} (x{quantities[card.id]})
+                    {card.firstName} {card.lastName} (x{quantities[card.id]})
                   </option>
                 ))}
               </select>
@@ -145,7 +145,7 @@ export default function DoublesPage() {
                 <option value="">Je reçois...</option>
                 {partnerTradeable.map((card) => (
                   <option key={card.id} value={card.id}>
-                    {card.name} (partenaire x{partnerDoubles[card.id]})
+                    {card.firstName} {card.lastName} (partenaire x{partnerDoubles[card.id]})
                   </option>
                 ))}
               </select>
@@ -155,8 +155,8 @@ export default function DoublesPage() {
             </div>
             {selectedGiveId && selectedReceiveId ? (
               <p className={styles.preview}>
-                Tu donnes <strong>{cardById[selectedGiveId]?.name}</strong> et tu reçois{" "}
-                <strong>{cardById[selectedReceiveId]?.name}</strong>.
+                Tu donnes <strong>{cardById[selectedGiveId]?.firstName} {cardById[selectedGiveId]?.lastName}</strong> et tu reçois{" "}
+                <strong>{cardById[selectedReceiveId]?.firstName} {cardById[selectedReceiveId]?.lastName}</strong>.
               </p>
             ) : null}
           </div>

@@ -2,7 +2,8 @@ export type CardRole = "joueur" | "coach" | "dirigeant";
 
 export type Card = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: CardRole;
   category: string;
   number: number;

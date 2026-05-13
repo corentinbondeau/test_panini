@@ -1,7 +1,7 @@
 .page {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr;
 }
 
 .left,
@@ -17,14 +17,14 @@
   border-radius: 10px;
   padding: 10px 12px;
   font-weight: 700;
-  background: #f3c623;
-  color: #12294f;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
   cursor: pointer;
 }
 
-@media (max-width: 980px) {
+@media (min-width: 768px) {
   .page {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1.1fr 0.9fr;
   }
 }
 
@@ -40,11 +40,19 @@
   background-repeat: no-repeat;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 .description {
   margin: 20px 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   text-align: center;
-  color: #12294f;
+  color: var(--text-soft);
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .description {
+    font-size: 1rem;
+  }
 }

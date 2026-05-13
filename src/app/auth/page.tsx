@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { RegisterForm } from '@/components/auth/RegisterForm';
-import { UserProfile } from '@/components/auth/UserProfile';
+import Link from 'next/link';
 import styles from './auth.module.css';
 
 export default function AuthPage() {
@@ -24,7 +24,18 @@ export default function AuthPage() {
     return (
       <div className={styles.container}>
         <h1>Mon Compte</h1>
-        <UserProfile />
+        <p style={{ textAlign: 'center', color: 'var(--text-soft)' }}>
+          Tu es connecté en tant que <strong>{user.name}</strong>.
+        </p>
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <Link href="/compte" style={{
+            display: 'inline-block', padding: '0.6rem 1.5rem',
+            background: 'var(--club-yellow-500)', color: 'var(--club-blue-950)',
+            borderRadius: '8px', fontWeight: 700, textDecoration: 'none'
+          }}>
+            Gérer mon compte
+          </Link>
+        </div>
       </div>
     );
   }
@@ -33,26 +44,15 @@ export default function AuthPage() {
     <div className={styles.container}>
       <div className={styles.authContainer}>
         {isRegister ? (
-          <RegisterForm
-            onSuccess={() => {
-              setIsRegister(false);
-            }}
-          />
+          <RegisterForm onSuccess={() => { setIsRegister(false); }} />
         ) : (
           <LoginForm />
         )}
-
         <div className={styles.toggle}>
           {isRegister ? (
-            <p>
-              Vous avez déjà un compte?{' '}
-              <button onClick={() => setIsRegister(false)}>Se connecter</button>
-            </p>
+            <p>Vous avez déjà un compte? <button onClick={() => setIsRegister(false)}>Se connecter</button></p>
           ) : (
-            <p>
-              Pas encore de compte?{' '}
-              <button onClick={() => setIsRegister(true)}>S&apos;inscrire</button>
-            </p>
+            <p>Pas encore de compte? <button onClick={() => setIsRegister(true)}>S&apos;inscrire</button></p>
           )}
         </div>
       </div>

@@ -1,33 +1,31 @@
 .container {
-  max-width: 600px;
+  max-width: 480px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
 .container h1 {
   text-align: center;
-  color: #333;
+  color: var(--club-yellow-500);
   margin-bottom: 2rem;
 }
 
 .authContainer {
-  background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .toggle {
-  padding: 1.5rem;
+  padding: 1.2rem;
   text-align: center;
-  border-top: 1px solid #e0e0e0;
-  background: #fafafa;
+  border-top: 1px solid var(--club-blue-700);
+  background: rgba(11, 31, 63, 0.6);
 }
 
 .toggle p {
   margin: 0;
-  color: #666;
-  font-size: 0.95rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
 }
 
 .toggle button {
@@ -35,19 +33,20 @@
   margin: 0 0.25rem;
   background: none;
   border: none;
-  color: #4a90e2;
+  color: var(--club-yellow-500);
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;
+  font-size: 0.9rem;
 }
 
 .toggle button:hover {
-  color: #357abd;
+  color: var(--club-yellow-400);
 }
 
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: var(--text-soft);
   font-size: 1.1rem;
 }

@@ -99,7 +99,7 @@ export const decodeSharedCollection = (value: string): SharedCollectionPayload =
 export const shareCollection = (cards: Card[], quantities: Record<string, number>) => {
   const payload = buildSharedCollectionPayload(cards, quantities);
   const doubles = cards.filter((card) => (payload.doubles[card.id] ?? 0) >= 2);
-  const lines = doubles.map((card) => `- ${card.name} (${card.id}) x${quantities[card.id]}`);
+  const lines = doubles.map((card) => `- ${card.firstName} ${card.lastName} (${card.id}) x${quantities[card.id]}`);
   const encodedPayload = encodeSharedCollection(payload);
   const shareCode = shortHash8(encodedPayload);
   saveCodeMapping(shareCode, encodedPayload);

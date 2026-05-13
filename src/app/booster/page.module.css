@@ -113,6 +113,38 @@
   object-fit: cover;
 }
 
+.loginPrompt {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--club-blue-900);
+  border-radius: 12px;
+  border: 1px solid var(--club-blue-700);
+}
+
+.loginPrompt h2 {
+  margin: 0 0 0.5rem;
+}
+
+.loginPrompt p {
+  color: var(--text-soft);
+  margin: 0 0 1.5rem;
+}
+
+.loginLink {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.loginLink:hover {
+  opacity: 0.85;
+}
+
 @keyframes reveal {
   from {
     transform: scale(0.96);
