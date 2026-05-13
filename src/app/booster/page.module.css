@@ -33,64 +33,160 @@
   margin: 0;
 }
 
-.note {
-  margin: 0;
-  color: var(--text-soft);
-}
+/* --- Pack animation --- */
 
-.grid {
+.packArea {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  place-items: center;
+  min-height: 280px;
+  position: relative;
 }
 
-.card {
+.pack {
+  width: 180px;
+  height: 250px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--club-blue-700), var(--club-blue-900));
+  border: 2px solid var(--club-yellow-500);
+  cursor: pointer;
   position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.packInner {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  position: relative;
+}
+
+.packBadge {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--club-yellow-500);
+  letter-spacing: 4px;
+}
+
+.packSub {
+  position: absolute;
+  bottom: 24px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  letter-spacing: 2px;
+}
+
+.packGlow {
+  position: absolute;
+  inset: -60px;
+  background: radial-gradient(circle, rgba(243, 198, 35, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+  animation: pulseGlow 0.7s ease-in-out infinite alternate;
+}
+
+.flashOverlay {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* --- Deck empilé (dos des cartes avec logo) --- */
+
+.deckArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0;
+}
+
+.deck {
+  position: relative;
+  width: 160px;
+  height: 220px;
+  cursor: pointer;
+}
+
+.deckCard {
+  position: absolute;
+  inset: 0;
+  width: 160px;
+  height: 220px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--club-blue-700), var(--club-blue-900));
+  border: 2px solid var(--club-blue-600);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.cardBackDesign {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.cardBackLogo {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+.deckHint {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* --- Reveal phase --- */
+
+.revealArea {
+  display: grid;
+  gap: 24px;
+}
+
+.revealTop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.revealAllBtn {
+  border: 1px solid var(--club-yellow-500);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--club-yellow-500);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.revealAllBtn:hover {
+  background: rgba(243, 198, 35, 0.1);
+}
+
+.revealedGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.revealedCard {
   border-radius: 14px;
   border: 1px solid var(--club-blue-700);
-  min-height: 220px;
   background: linear-gradient(180deg, var(--club-blue-800) 0%, var(--club-blue-900) 100%);
   padding: 12px;
   overflow: hidden;
-  perspective: 800px;
-}
-
-.placeholder {
-  display: grid;
-  place-items: center;
-  color: var(--text-soft);
-  border-style: dashed;
-}
-
-.revealed {
-  animation: reveal 360ms ease-out;
-}
-
-.newCard {
-  box-shadow: 0 0 0 1px rgba(135, 185, 255, 0.4);
-}
-
-.rare {
-  box-shadow: 0 0 0 2px var(--club-yellow-500), 0 0 30px rgba(243, 198, 35, 0.5);
-  border-color: var(--club-yellow-500);
-}
-
-.duplicate {
-  box-shadow: 0 0 0 1px rgba(255, 212, 71, 0.8), 0 0 20px rgba(255, 212, 71, 0.5);
-}
-
-.rareGlow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--club-yellow-500);
-  animation: sparkle 1.2s ease-in-out infinite;
 }
 
 .badges {
@@ -109,15 +205,6 @@
   text-transform: capitalize;
 }
 
-.rareBadge {
-  background: var(--club-yellow-500);
-  color: var(--club-blue-950);
-  border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
 .doubleBadge {
   background: var(--club-yellow-400);
   color: var(--club-blue-950);
@@ -127,8 +214,9 @@
   font-weight: 700;
 }
 
-.card h3 {
+.cardName {
   margin: 10px 0 6px;
+  font-size: 1rem;
 }
 
 .meta {
@@ -149,7 +237,7 @@
 .photo {
   display: block;
   width: 100%;
-  height: 130px;
+  height: 110px;
   object-fit: cover;
 }
 
@@ -164,7 +252,7 @@
 }
 
 .summary p {
-  margin: 0;
+  margin: 0 0 12px;
 }
 
 .loginPrompt {
@@ -199,24 +287,7 @@
   opacity: 0.85;
 }
 
-@keyframes reveal {
-  from {
-    transform: scale(0.96);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes sparkle {
-  0%, 100% {
-    opacity: 0;
-    transform: scale(0);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes pulseGlow {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
 }
