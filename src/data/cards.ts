@@ -1,5 +1,7 @@
 export type CardRole = "joueur" | "coach" | "dirigeant";
 
+export type CardRarity = "commune";
+
 export type Card = {
   id: string;
   firstName: string;
@@ -9,4 +11,5 @@ export type Card = {
   number: number;
   team: string;
   photo: string;
+  rarity: CardRarity;
 };

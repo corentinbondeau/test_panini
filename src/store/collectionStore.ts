@@ -91,7 +91,7 @@ export const useCollectionStore = create<CollectionState>()(
         const nextQuantities = { ...currentQuantities };
         const draws: BoosterCardDraw[] = [];
 
-        for (let i = 0; i < 4; i += 1) {
+        for (let i = 0; i < 5; i += 1) {
           const randomIndex = Math.floor(Math.random() * CLUB_CARDS.length);
           const card = CLUB_CARDS[randomIndex];
           const previous = nextQuantities[card.id] ?? 0;

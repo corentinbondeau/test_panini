@@ -467,6 +467,7 @@ export const seedClubCards = (): Card[] => {
       number: index + 1,
       team: "ECC Panini",
       photo: categoryPhoto(player.category),
+      rarity: "commune",
     });
   });
 
