@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCollectionStore, BoosterCardDraw } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
@@ -15,11 +15,14 @@ export default function BoosterPage() {
   const openBoosterPack = useCollectionStore((s) => s.openBoosterPack);
   const syncToServer = useCollectionStore((s) => s.syncToServer);
   const [draws, setDraws] = useState<BoosterCardDraw[]>([]);
-  const [phase, setPhase] = useState<"idle" | "shake" | "flash" | "back" | "reveal" | "done">("idle");
+  const [phase, setPhase] = useState<"idle" | "shake" | "flash" | "reveal" | "done">("idle");
   const [revealedCount, setRevealedCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const allRevealed = revealedCount === PACK_SIZE;
+  const currentDraw = draws[revealedCount];
+  const remainingCount = PACK_SIZE - revealedCount;
 
   useEffect(() => {
     if (allRevealed && phase === "reveal") {
@@ -40,7 +43,7 @@ export default function BoosterPage() {
         const nextDraws = openBoosterPack();
         setDraws(nextDraws);
         setRevealedCount(0);
-        setPhase("back");
+        setPhase("reveal");
       }, 600);
     }, 700);
   }, [openBoosterPack]);
@@ -49,10 +52,6 @@ export default function BoosterPage() {
     if (revealedCount < PACK_SIZE) {
       setRevealedCount((prev) => prev + 1);
     }
-  };
-
-  const handleRevealAll = () => {
-    setRevealedCount(PACK_SIZE);
   };
 
   if (!user) {
@@ -71,32 +70,18 @@ export default function BoosterPage() {
     <section className={styles.page}>
       <div className={styles.header}>
         <h2>Pack de {PACK_SIZE} cartes</h2>
-        {phase === "idle" && (
-          <motion.button
-            onClick={handleOpen}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={styles.openBtn}
-          >
-            Ouvrir un booster
-          </motion.button>
-        )}
       </div>
 
       {isSyncing && <p className={styles.syncing}>Synchronisation...</p>}
 
-      {/* Pack animation — idle / shake / flash */}
+      {/* Pack animation */}
       {(phase === "idle" || phase === "shake" || phase === "flash") && (
         <div className={styles.packArea}>
           <motion.div
             className={styles.pack}
             animate={
               phase === "shake"
-                ? {
-                    x: [0, -8, 8, -6, 6, -4, 4, -2, 2, 0],
-                    rotate: [0, -3, 3, -2, 2, -1, 1, 0],
-                    scale: [1, 1.04, 0.96, 1.02, 0.98, 1],
-                  }
+                ? { x: [0, -8, 8, -6, 6, -4, 4, -2, 2, 0], rotate: [0, -3, 3, -2, 2, -1, 1, 0], scale: [1, 1.04, 0.96, 1.02, 0.98, 1] }
                 : phase === "flash"
                 ? { scale: 6, opacity: 0 }
                 : { scale: 1, opacity: 1 }
@@ -111,134 +96,117 @@ export default function BoosterPage() {
             onClick={phase === "idle" ? handleOpen : undefined}
           >
             <div className={styles.packInner}>
-              <span className={styles.packBadge}>ECC</span>
-              <span className={styles.packSub}>Panini</span>
+              {(phase === "idle" || phase === "shake") ? (
+                <>
+                  <span className={styles.packBadge}>ECC</span>
+                  <span className={styles.packSub}>Panini</span>
+                </>
+              ) : (
+                <img src="/Saison%2025-26.png" alt="" className={styles.packBackImg} />
+              )}
             </div>
           </motion.div>
-
           {phase === "shake" && <div className={styles.packGlow} />}
           {phase === "flash" && <div className={styles.flashOverlay} />}
         </div>
       )}
 
-      {/* Back : paquet empilé avec le logo du club */}
-      {phase === "back" && draws.length > 0 && (
-        <motion.div
-          className={styles.deckArea}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className={styles.deck}>
-            {draws.map((_, index) => (
-              <div
-                key={index}
-                className={styles.deckCard}
-                style={{
-                  zIndex: draws.length - index,
-                  transform: `rotate(${(index - 2) * 1.5}deg) translateY(${index * 1.5}px)`,
-                }}
-              >
-                <div className={styles.cardBackDesign}>
-                  <img src="/logo-club.png" alt="ECC" className={styles.cardBackLogo} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <motion.button
-            onClick={() => setPhase("reveal")}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className={styles.openBtn}
-          >
-            {"Commencer l'ouverture"}
-          </motion.button>
-        </motion.div>
-      )}
-
-      {/* Reveal : piocher une par une */}
-      {phase === "reveal" && draws.length > 0 && (
+      {/* Reveal phase */}
+      {phase === "reveal" && currentDraw && (
         <div className={styles.revealArea}>
-          <div className={styles.revealTop}>
-            {/* Paquet restant */}
+          {/* Current card face-up */}
+          <motion.div
+            key={revealedCount}
+            className={styles.currentCard}
+            initial={{ scale: 0.3, opacity: 0, rotateY: 180 }}
+            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            onClick={revealedCount < PACK_SIZE ? handleNextCard : undefined}
+            whileHover={revealedCount < PACK_SIZE ? { scale: 1.02 } : undefined}
+            whileTap={revealedCount < PACK_SIZE ? { scale: 0.97 } : undefined}
+            ref={cardRef}
+          >
+            <div className={styles.badges}>
+              <span className={styles.role}>{currentDraw.card.category}</span>
+              {currentDraw.wasDuplicate && (
+                <span className={styles.doubleBadge}>
+                  DOUBLE x{currentDraw.quantityAfter}
+                </span>
+              )}
+            </div>
+            <h3 className={styles.cardName}>
+              {currentDraw.card.firstName} {currentDraw.card.lastName}
+            </h3>
+            <p className={styles.meta}>
+              #{currentDraw.card.number.toString().padStart(3, "0")}
+            </p>
+            <div className={styles.photoWrap}>
+              <Image
+                className={styles.photo}
+                src={currentDraw.card.photo}
+                alt={`${currentDraw.card.firstName} ${currentDraw.card.lastName}`}
+                width={320}
+                height={180}
+              />
+            </div>
             {revealedCount < PACK_SIZE && (
-              <motion.div
-                className={styles.deck}
-                onClick={handleNextCard}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                {draws.slice(revealedCount).map((_, i) => (
+              <span className={styles.cardHint}>
+                Cliquez pour la carte suivante ({revealedCount + 1}/{PACK_SIZE})
+              </span>
+            )}
+          </motion.div>
+
+          {/* Remaining deck indicator */}
+          {remainingCount > 1 && (
+            <div className={styles.remainingArea}>
+              <div className={styles.miniDeck}>
+                {Array.from({ length: Math.min(remainingCount - 1, 3) }).map((_, i) => (
                   <div
                     key={i}
-                    className={styles.deckCard}
+                    className={styles.miniCard}
                     style={{
-                      zIndex: draws.length - revealedCount - i,
-                      transform: `rotate(${(i - Math.floor((draws.length - revealedCount - 1) / 2)) * 1.5}deg) translateY(${i * 1.5}px)`,
+                      zIndex: 3 - i,
+                      transform: `rotate(${(i - 1) * 2.5}deg)`,
                     }}
                   >
-                    <div className={styles.cardBackDesign}>
-                      <img src="/logo-club.png" alt="ECC" className={styles.cardBackLogo} />
-                    </div>
+                    <img src="/Saison%2025-26.png" alt="" className={styles.miniBack} />
                   </div>
                 ))}
-                <span className={styles.deckHint}>
-                  Cliquez pour révéler ({revealedCount + 1}/{PACK_SIZE})
-                </span>
-              </motion.div>
-            )}
+              </div>
+              <span className={styles.remainingLabel}>
+                {remainingCount - 1} carte{remainingCount - 1 > 1 ? "s" : ""} restante{remainingCount - 1 > 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
 
-            {revealedCount < PACK_SIZE && (
-              <motion.button
-                onClick={handleRevealAll}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={styles.revealAllBtn}
-              >
-                Tout révéler
-              </motion.button>
-            )}
-          </div>
-
-          {/* Cartes révélées */}
-          <div className={styles.revealedGrid}>
-            {draws.slice(0, revealedCount).map((draw, index) => (
-              <motion.div
-                key={`${draw.card.id}-${index}`}
-                className={styles.revealedCard}
-                initial={{ scale: 0.3, opacity: 0, rotateY: 180 }}
-                animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              >
-                <div className={styles.badges}>
-                  <span className={styles.role}>{draw.card.category}</span>
-                  {draw.wasDuplicate && (
-                    <span className={styles.doubleBadge}>
-                      DOUBLE x{draw.quantityAfter}
+          {/* Revealed cards */}
+          {revealedCount > 0 && (
+            <div className={styles.revealedSection}>
+              <h4 className={styles.revealedTitle}>Déjà obtenues</h4>
+              <div className={styles.revealedRow}>
+                {draws.slice(0, revealedCount).map((draw, index) => (
+                  <motion.div
+                    key={`${draw.card.id}-${index}`}
+                    className={styles.revealedCard}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Image
+                      className={styles.miniPhoto}
+                      src={draw.card.photo}
+                      alt={`${draw.card.firstName} ${draw.card.lastName}`}
+                      width={80}
+                      height={50}
+                    />
+                    <span className={styles.miniName}>
+                      {draw.card.firstName} {draw.card.lastName}
                     </span>
-                  )}
-                </div>
-                <h3 className={styles.cardName}>
-                  {draw.card.firstName} {draw.card.lastName}
-                </h3>
-                <p className={styles.meta}>
-                  #{draw.card.number.toString().padStart(3, "0")}
-                </p>
-                <div className={styles.photoWrap}>
-                  <Image
-                    className={styles.photo}
-                    src={draw.card.photo}
-                    alt={`${draw.card.firstName} ${draw.card.lastName}`}
-                    width={320}
-                    height={180}
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
