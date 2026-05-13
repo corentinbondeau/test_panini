@@ -11,6 +11,33 @@
   flex-wrap: wrap;
 }
 
+.quotaIndicator {
+  background: var(--club-blue-800);
+  border: 1px solid var(--club-yellow-500);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--club-yellow-500);
+}
+
+.quotaSummary {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.errorMsg {
+  text-align: center;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 .openBtn {
   border: none;
   border-radius: 10px;

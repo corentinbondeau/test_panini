@@ -1,16 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CardTile } from "@/components/cards/CardTile";
 import { CLUB_CARDS } from "@/data/clubCards";
 import { decodeSharedCollection, shareCollection } from "@/lib/shareCollection";
 import { useCollectionSelectors, useCollectionStore } from "@/store/collectionStore";
+import { useAuthStore } from "@/store/authStore";
 import styles from "./page.module.css";
 
 export default function DoublesPage() {
   const { quantities, doublesCards } = useCollectionSelectors();
   const addCard = useCollectionStore((state) => state.addCard);
   const removeCard = useCollectionStore((state) => state.removeCard);
+  const loadCollection = useCollectionStore((state) => state.loadFromServer);
+  const token = useAuthStore((state) => state.token);
+  const activeCollectionId = useCollectionStore((state) => state.activeCollectionId);
+
+  useEffect(() => {
+    if (token) {
+      loadCollection(token, activeCollectionId);
+    }
+  }, [token, activeCollectionId, loadCollection]);
   const [importValue, setImportValue] = useState("");
   const [partnerDoubles, setPartnerDoubles] = useState<Record<string, number> | null>(null);
   const [importError, setImportError] = useState<string | null>(null);

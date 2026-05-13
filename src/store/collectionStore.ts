@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { Card } from "@/data/cards";
 import { DEFAULT_COLLECTION_ID } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
@@ -20,170 +19,160 @@ type CollectionState = {
   lastDrawCardId: string | null;
   lastDrawWasDuplicate: boolean;
   syncError: string | null;
+  initialized: boolean;
   addCard: (cardId: string, amount?: number) => void;
   setQuantity: (cardId: string, quantity: number) => void;
   removeCard: (cardId: string, amount?: number) => void;
   setActiveCollectionId: (id: string) => void;
-  drawRandomCard: (collectionId?: string) => Card;
-  openBoosterPack: (collectionId?: string) => BoosterCardDraw[];
+  openBoosterPackAsync: (collectionId: string, token: string) => Promise<BoosterCardDraw[]>;
   resetCollection: () => void;
   getQuantity: (cardId: string) => number;
   syncToServer: (token: string, collectionId?: string) => Promise<void>;
   loadFromServer: (token: string, collectionId?: string) => Promise<void>;
+  setQuantities: (quantities: Record<string, number>) => void;
 };
 
-const safeStorage = createJSONStorage(() => localStorage);
-
 export const useCollectionStore = create<CollectionState>()(
-  persist(
-    (set, get) => ({
-      quantities: {},
-      activeCollectionId: DEFAULT_COLLECTION_ID,
-      lastDrawCardId: null,
-      lastDrawWasDuplicate: false,
-      syncError: null,
+  (set, get) => ({
+    quantities: {},
+    activeCollectionId: DEFAULT_COLLECTION_ID,
+    lastDrawCardId: null,
+    lastDrawWasDuplicate: false,
+    syncError: null,
+    initialized: false,
 
-      setActiveCollectionId: (id) => set({ activeCollectionId: id }),
+    setActiveCollectionId: (id) => set({ activeCollectionId: id }),
 
-      addCard: (cardId, amount = 1) =>
-        set((state) => {
-          const previous = state.quantities[cardId] ?? 0;
-          const quantity = Math.max(0, previous + amount);
-          const next = { ...state.quantities };
-          if (quantity <= 0) {
-            delete next[cardId];
-          } else {
-            next[cardId] = quantity;
-          }
-          return {
-            quantities: next,
-            lastDrawCardId: cardId,
-            lastDrawWasDuplicate: previous >= 1
-          };
-        }),
+    setQuantities: (quantities) => set({ quantities }),
 
-      setQuantity: (cardId, quantity) =>
-        set((state) => {
-          const next = { ...state.quantities };
-          if (quantity <= 0) {
-            delete next[cardId];
-          } else {
-            next[cardId] = quantity;
-          }
-          return { quantities: next };
-        }),
+    addCard: (cardId, amount = 1) =>
+      set((state) => {
+        const previous = state.quantities[cardId] ?? 0;
+        const quantity = Math.max(0, previous + amount);
+        const next = { ...state.quantities };
+        if (quantity <= 0) {
+          delete next[cardId];
+        } else {
+          next[cardId] = quantity;
+        }
+        return {
+          quantities: next,
+          lastDrawCardId: cardId,
+          lastDrawWasDuplicate: previous >= 1
+        };
+      }),
 
-      removeCard: (cardId, amount = 1) =>
-        set((state) => {
-          const previous = state.quantities[cardId] ?? 0;
-          const quantity = Math.max(0, previous - amount);
-          const next = { ...state.quantities };
-          if (quantity <= 0) {
-            delete next[cardId];
-          } else {
-            next[cardId] = quantity;
-          }
-          return { quantities: next };
-        }),
+    setQuantity: (cardId, quantity) =>
+      set((state) => {
+        const next = { ...state.quantities };
+        if (quantity <= 0) {
+          delete next[cardId];
+        } else {
+          next[cardId] = quantity;
+        }
+        return { quantities: next };
+      }),
 
-      drawRandomCard: (collectionId) => {
-        const cards = getCardsByCollection(collectionId || get().activeCollectionId);
-        const randomIndex = Math.floor(Math.random() * cards.length);
-        const card = cards[randomIndex];
-        get().addCard(card.id, 1);
-        return card;
-      },
+    removeCard: (cardId, amount = 1) =>
+      set((state) => {
+        const previous = state.quantities[cardId] ?? 0;
+        const quantity = Math.max(0, previous - amount);
+        const next = { ...state.quantities };
+        if (quantity <= 0) {
+          delete next[cardId];
+        } else {
+          next[cardId] = quantity;
+        }
+        return { quantities: next };
+      }),
 
-      openBoosterPack: (collectionId) => {
-        const cards = getCardsByCollection(collectionId || get().activeCollectionId);
-        const currentQuantities = get().quantities;
-        const nextQuantities = { ...currentQuantities };
-        const draws: BoosterCardDraw[] = [];
+    openBoosterPackAsync: async (collectionId, token) => {
+      const response = await fetch('/api/booster/open', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ collectionId }),
+      });
 
-        for (let i = 0; i < 5; i += 1) {
-          const randomIndex = Math.floor(Math.random() * cards.length);
-          const card = cards[randomIndex];
-          const previous = nextQuantities[card.id] ?? 0;
-          const next = previous + 1;
-          nextQuantities[card.id] = next;
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erreur lors de l'ouverture du booster");
+      }
 
-          draws.push({
-            card,
-            wasDuplicate: previous >= 1,
-            quantityAfter: next
+      const data = await response.json();
+      const cards: BoosterCardDraw[] = data.cards;
+
+      const nextQuantities = { ...get().quantities };
+      for (const draw of cards) {
+        nextQuantities[draw.card.id] = draw.quantityAfter;
+      }
+
+      const lastDraw = cards[cards.length - 1];
+      set({
+        quantities: nextQuantities,
+        lastDrawCardId: lastDraw.card.id,
+        lastDrawWasDuplicate: lastDraw.wasDuplicate,
+        syncError: null,
+      });
+
+      return cards;
+    },
+
+    resetCollection: () =>
+      set({
+        quantities: {},
+        lastDrawCardId: null,
+        lastDrawWasDuplicate: false
+      }),
+
+    getQuantity: (cardId) => get().quantities[cardId] ?? 0,
+
+    syncToServer: async (token, collectionId) => {
+      try {
+        const quantities = get().quantities;
+        const cid = collectionId || get().activeCollectionId;
+        for (const [cardId, quantity] of Object.entries(quantities)) {
+          await fetch('/api/collection', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ cardId, quantity, collectionId: cid }),
           });
         }
+        set({ syncError: null });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Sync failed';
+        set({ syncError: errorMessage });
+      }
+    },
 
-        const lastDraw = draws[draws.length - 1];
-        set({
-          quantities: nextQuantities,
-          lastDrawCardId: lastDraw.card.id,
-          lastDrawWasDuplicate: lastDraw.wasDuplicate
+    loadFromServer: async (token, collectionId) => {
+      try {
+        const cid = collectionId || get().activeCollectionId;
+        const response = await fetch(`/api/collection?collectionId=${encodeURIComponent(cid)}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        return draws;
-      },
-
-      resetCollection: () =>
-        set({
-          quantities: {},
-          lastDrawCardId: null,
-          lastDrawWasDuplicate: false
-        }),
-
-      getQuantity: (cardId) => get().quantities[cardId] ?? 0,
-
-      syncToServer: async (token, collectionId) => {
-        try {
-          const quantities = get().quantities;
-          const cid = collectionId || get().activeCollectionId;
-          for (const [cardId, quantity] of Object.entries(quantities)) {
-            await fetch('/api/collection', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ cardId, quantity, collectionId: cid }),
-            });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.collection) {
+            const serverCards = data.collection.cards as Record<string, number>;
+            set({ quantities: serverCards, syncError: null });
+          } else {
+            set({ quantities: {} });
           }
-          set({ syncError: null });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Sync failed';
-          set({ syncError: errorMessage });
         }
-      },
-
-      loadFromServer: async (token, collectionId) => {
-        try {
-          const cid = collectionId || get().activeCollectionId;
-          const response = await fetch(`/api/collection?collectionId=${encodeURIComponent(cid)}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.collection) {
-              const serverCards = data.collection.cards as Record<string, number>;
-              set({ quantities: serverCards, syncError: null });
-            }
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Load failed';
-          set({ syncError: errorMessage });
-        }
-      },
-    }),
-    {
-      name: "panini-collection-v2",
-      storage: safeStorage,
-      partialize: (state) => ({
-        quantities: state.quantities,
-        activeCollectionId: state.activeCollectionId,
-      }),
-      version: 2
-    }
-  )
+        set({ initialized: true });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Load failed';
+        set({ syncError: errorMessage, initialized: true });
+      }
+    },
+  })
 );
 
 export const useCollectionSelectors = (collectionId?: string) => {

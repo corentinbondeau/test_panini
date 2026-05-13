@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
+import { checkAndResetQuota, MAX_TRADES_PER_DAY } from '@/lib/quota';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
+      );
+    }
+
+    const quota = await checkAndResetQuota(decoded.userId);
+    if (quota.tradesMadeToday >= MAX_TRADES_PER_DAY) {
+      return NextResponse.json(
+        {
+          error: 'Limite quotidienne d\'échanges atteinte (5/jour)',
+          quota: {
+            tradesMadeToday: quota.tradesMadeToday,
+            maxTradesPerDay: MAX_TRADES_PER_DAY,
+          },
+        },
+        { status: 429 }
       );
     }
 

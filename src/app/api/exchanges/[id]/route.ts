@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
+import { incrementTradeCount } from '@/lib/quota';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,13 @@ export async function PUT(
         { error: 'Only recipient can update this exchange' },
         { status: 403 }
       );
+    }
+
+    // Increment trade counter for both parties when accepted or completed
+    if (status === 'accepted' || status === 'completed') {
+      await incrementTradeCount(decoded.userId);
+      const otherUserId = exchange.requesterId === decoded.userId ? exchange.recipientId : exchange.requesterId;
+      await incrementTradeCount(otherUserId);
     }
 
     const updatedExchange = await prisma.exchange.update({

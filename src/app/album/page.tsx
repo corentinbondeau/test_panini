@@ -23,9 +23,18 @@ export default function AlbumPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
+  const loadCollection = useCollectionStore((s) => s.loadFromServer);
+  const token = useAuthStore((s) => s.token);
+
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (token) {
+      loadCollection(token, selectedCollection);
+    }
+  }, [token, selectedCollection, loadCollection]);
 
   useEffect(() => {
     setSelectedCollection(storeCollectionId);

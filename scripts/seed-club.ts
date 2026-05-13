@@ -458,6 +458,16 @@ export const seedClubCards = (): Card[] => {
     const role = categoryRole(player.category);
     const id = `${role}-${(index + 1).toString().padStart(3, "0")}`;
 
+    let imageUrl: string | null = null;
+
+    if (
+      player.firstName === "Corentin" &&
+      player.lastName === "BONDEAU" &&
+      player.category === "Senior"
+    ) {
+      imageUrl = "/corentinbondeau.jpg";
+    }
+
     cards.push({
       id,
       firstName: player.firstName,
@@ -469,10 +479,7 @@ export const seedClubCards = (): Card[] => {
       photo: categoryPhoto(player.category),
       rarity: "commune",
       collectionId: "s25-26",
-      imageUrl:
-        player.firstName === "Corentin" && player.lastName === "BONDEAU"
-          ? "/corentinbondeau.jpg"
-          : null,
+      imageUrl,
     });
   });
 

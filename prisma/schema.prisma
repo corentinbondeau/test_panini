@@ -34,6 +34,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Daily quotas
+  boostersOpenedToday Int      @default(0)
+  tradesMadeToday     Int      @default(0)
+  lastResetDate       DateTime?
+
   // Relations
   collections     UserCollection[]
   sentExchanges   Exchange[]      @relation("Requester")

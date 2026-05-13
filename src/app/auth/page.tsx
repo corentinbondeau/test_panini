@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useCollectionSelectors } from '@/store/collectionStore';
+import { useCollectionSelectors, useCollectionStore } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { RegisterForm } from '@/components/auth/RegisterForm';
@@ -10,8 +10,9 @@ import Image from 'next/image';
 import styles from './auth.module.css';
 
 export default function AuthPage() {
-  const { user, isLoading, updateProfile, checkAuth, logout } = useAuthStore();
+  const { user, isLoading, updateProfile, checkAuth, logout, token } = useAuthStore();
   const { quantities } = useCollectionSelectors();
+  const loadCollection = useCollectionStore((s) => s.loadFromServer);
   const [isRegister, setIsRegister] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -25,6 +26,12 @@ export default function AuthPage() {
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (token) {
+      loadCollection(token);
+    }
+  }, [token, loadCollection]);
 
   useEffect(() => {
     if (user) {

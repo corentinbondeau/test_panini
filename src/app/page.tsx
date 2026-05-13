@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BoosterDraw } from "@/components/booster/BoosterDraw";
 import { ProgressPanel } from "@/components/stats/ProgressPanel";
 import { useCollectionStore } from "@/store/collectionStore";
+import { useAuthStore } from "@/store/authStore";
 import { COLLECTIONS, ALL_COLLECTIONS_ID } from "@/data/cards";
 import styles from "./page.module.css";
 
@@ -13,7 +14,15 @@ const TAB_OPTIONS = [ALL_OPTION, ...COLLECTIONS];
 export default function HomePage() {
   const storeCollectionId = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
+  const loadCollection = useCollectionStore((s) => s.loadFromServer);
+  const token = useAuthStore((s) => s.token);
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
+
+  useEffect(() => {
+    if (token) {
+      loadCollection(token, selectedCollection);
+    }
+  }, [token, selectedCollection, loadCollection]);
 
   const handleChange = (id: string) => {
     setSelectedCollection(id);

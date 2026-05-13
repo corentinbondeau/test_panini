@@ -5,7 +5,12 @@ import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 
 export const dynamic = 'force-dynamic';
 
-function getCollectionId(request: NextRequest): string {
+async function resolveCollectionObjectId(slug: string): Promise<string | null> {
+  const collection = await prisma.collection.findUnique({ where: { slug } });
+  return collection ? collection.id : null;
+}
+
+function getCollectionSlug(request: NextRequest): string {
   const url = new URL(request.url);
   return url.searchParams.get('collectionId') || DEFAULT_COLLECTION_ID;
 }
@@ -14,18 +19,23 @@ export async function GET(request: NextRequest) {
   try {
     const token = getTokenFromHeader(request.headers.get('authorization') || '');
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
-    const collectionId = getCollectionId(request);
+    const collectionSlug = getCollectionSlug(request);
+    const collectionObjectId = await resolveCollectionObjectId(collectionSlug);
+
+    if (!collectionObjectId) {
+      return NextResponse.json({ error: 'Collection introuvable' }, { status: 404 });
+    }
 
     const userCollection = await prisma.userCollection.findUnique({
-      where: { userId_collectionId: { userId: decoded.userId, collectionId } },
+      where: { userId_collectionId: { userId: decoded.userId, collectionId: collectionObjectId } },
     });
 
     if (!userCollection) {
@@ -39,7 +49,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get collection error:', error);
     return NextResponse.json(
-      { error: 'Failed to get collection' },
+      { error: 'Erreur lors de la récupération de la collection' },
       { status: 500 }
     );
   }
@@ -49,46 +59,39 @@ export async function POST(request: NextRequest) {
   try {
     const token = getTokenFromHeader(request.headers.get('authorization') || '');
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { cardId, quantity, collectionId: bodyCollectionId } = body;
-    const collectionId = bodyCollectionId || DEFAULT_COLLECTION_ID;
+    const { cardId, quantity, collectionId: bodyCollectionSlug } = body;
+    const collectionSlug = bodyCollectionSlug || DEFAULT_COLLECTION_ID;
 
     if (!cardId || quantity === undefined) {
       return NextResponse.json(
-        { error: 'cardId and quantity are required' },
+        { error: 'cardId et quantity sont requis' },
         { status: 400 }
       );
     }
 
+    const collectionObjectId = await resolveCollectionObjectId(collectionSlug);
+    if (!collectionObjectId) {
+      return NextResponse.json({ error: 'Collection introuvable' }, { status: 404 });
+    }
+
     let userCollection = await prisma.userCollection.findUnique({
-      where: { userId_collectionId: { userId: decoded.userId, collectionId } },
+      where: { userId_collectionId: { userId: decoded.userId, collectionId: collectionObjectId } },
     });
 
-    // Create collection record if it doesn't exist
     if (!userCollection) {
-      const collection = await prisma.collection.findUnique({
-        where: { slug: collectionId },
-      });
-
-      if (!collection) {
-        return NextResponse.json(
-          { error: 'Collection not found' },
-          { status: 404 }
-        );
-      }
-
       userCollection = await prisma.userCollection.create({
         data: {
           userId: decoded.userId,
-          collectionId: collection.id,
+          collectionId: collectionObjectId,
           cards: {},
         },
       });
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Update collection error:', error);
     return NextResponse.json(
-      { error: 'Failed to update collection' },
+      { error: "Erreur lors de la mise à jour de la collection" },
       { status: 500 }
     );
   }

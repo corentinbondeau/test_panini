@@ -48,6 +48,13 @@
   margin-top: 10px;
 }
 
+.quotaText {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
 @keyframes duplicateGlow {
   from {
     box-shadow: 0 0 0 rgba(255, 212, 71, 0.15);
