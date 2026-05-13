@@ -1,24 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import Image from 'next/image';
 import Link from 'next/link';
+import styles from './page.module.css';
 
 export default function ComptePage() {
-  const router = useRouter();
   const { user, isLoading, updateProfile, checkAuth, logout } = useAuthStore();
   const { quantities } = useCollectionSelectors();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
@@ -26,20 +26,27 @@ export default function ComptePage() {
 
   useEffect(() => {
     if (user) {
-      setName(user.name || '');
+      const parts = (user.name || '').split(' ');
+      setFirstName(parts.slice(0, -1).join(' '));
+      setLastName(parts.pop() || '');
       setEmail(user.email || '');
     }
   }, [user]);
 
+  useEffect(() => {
+    if (showToast) {
+      toastTimer.current = setTimeout(() => setShowToast(false), 3000);
+      return () => clearTimeout(toastTimer.current);
+    }
+  }, [showToast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccess('');
     setError('');
-    setSaved(false);
     try {
-      await updateProfile({ name, email });
-      setSuccess('Profil mis à jour avec succès.');
-      setSaved(true);
+      const fullName = `${firstName} ${lastName}`.trim();
+      await updateProfile({ name: fullName, email });
+      setShowToast(true);
     } catch {
       setError('Erreur lors de la mise à jour.');
     }
@@ -51,30 +58,21 @@ export default function ComptePage() {
     try {
       await updateProfile({ avatar: photoUrl });
       setShowAvatarPicker(false);
-      setSuccess('Avatar mis à jour avec succès.');
-      setSaved(true);
+      setShowToast(true);
     } catch {
-      setError('Erreur lors de la mise à jour de l\'avatar.');
+      setError("Erreur lors de la mise à jour de l'avatar.");
     }
   };
 
-  const handleBackToHome = () => {
-    router.push('/');
-  };
-
   if (!isInitialized) {
-    return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-soft)' }}>
-        Chargement...
-      </div>
-    );
+    return <p className={styles.loading}>Chargement...</p>;
   }
 
   if (!user) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
         <h2>Connectez-vous</h2>
-        <p style={{ color: 'var(--text-soft)' }}>Vous devez être connecté pour accéder à cette page.</p>
+        <p style={{ color: 'var(--text-soft)' }}>Vous devez etre connecte pour acceder a cette page.</p>
         <Link href="/auth" style={{
           display: 'inline-block', marginTop: '1rem', padding: '0.6rem 1.5rem',
           background: 'var(--club-yellow-500)', color: 'var(--club-blue-950)',
@@ -87,76 +85,41 @@ export default function ComptePage() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 1rem' }}>
-      <h1 style={{ color: 'var(--club-yellow-500)', textAlign: 'center' }}>Mon compte</h1>
-
-      {saved && (
-        <div style={{
-          textAlign: 'center', marginBottom: '1.5rem', padding: '1rem',
-          borderRadius: '12px', background: 'rgba(0, 200, 100, 0.15)',
-          border: '1px solid rgba(0, 200, 100, 0.3)'
-        }}>
-          <p style={{ color: '#80d0a0', margin: '0 0 0.75rem', fontWeight: 600 }}>
-            {success}
-          </p>
-          <button onClick={handleBackToHome} style={{
-            padding: '0.5rem 1.5rem', background: 'var(--club-yellow-500)',
-            color: 'var(--club-blue-950)', border: 'none', borderRadius: '8px',
-            fontWeight: 700, cursor: 'pointer'
-          }}>
-            {"Retour à l'accueil"}
-          </button>
-        </div>
-      )}
+    <div className={styles.page}>
+      <h1 className={styles.title}>Mon compte</h1>
 
       {/* Avatar */}
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <div style={{
-          width: 96, height: 96, borderRadius: '50%', overflow: 'hidden',
-          border: '3px solid var(--club-yellow-500)', margin: '0 auto 0.5rem',
-          background: 'var(--club-blue-800)'
-        }}>
+      <div className={styles.avatarSection}>
+        <div className={styles.avatarCircle}>
           {user.avatar ? (
-            <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={user.avatar} alt="" className={styles.avatarImg} />
           ) : (
-            <div style={{
-              width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '2rem', color: 'var(--club-yellow-500)'
-            }}>
+            <div className={styles.avatarLetter}>
               {user.name?.charAt(0)?.toUpperCase() || '?'}
             </div>
           )}
         </div>
-        <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} style={{
-          background: 'none', border: '1px solid var(--club-blue-700)',
-          color: 'var(--text-soft)', borderRadius: '8px', padding: '0.4rem 1rem',
-          cursor: 'pointer', fontSize: '0.85rem'
-        }}>
+        <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} className={styles.avatarBtn}>
           {showAvatarPicker ? 'Fermer' : 'Choisir une carte comme avatar'}
         </button>
       </div>
 
       {/* Avatar picker */}
       {showAvatarPicker && (
-        <div style={{
-          marginBottom: '1.5rem', padding: '1rem', borderRadius: '12px',
-          border: '1px solid var(--club-blue-700)', background: 'var(--club-blue-900)',
-          maxHeight: 300, overflowY: 'auto'
-        }}>
-          <p style={{ margin: '0 0 0.75rem', color: 'var(--text-soft)', fontSize: '0.85rem' }}>
+        <div className={styles.pickerSection}>
+          <p className={styles.pickerLabel}>
             Choisis une carte de ta collection :
           </p>
           {ownedCards.length === 0 ? (
-            <p style={{ color: 'var(--text-soft)' }}>{"Tu n'as pas encore de cartes. Ouvre des boosters !"}</p>
+            <p className={styles.pickerEmpty}>{"Tu n'as pas encore de cartes. Ouvre des boosters !"}</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: 8 }}>
+            <div className={styles.pickerGrid}>
               {ownedCards.map((card) => (
-                <button key={card.id} onClick={() => handleSelectAvatar(card.photo)}
-                  style={{
-                    border: user.avatar === card.photo ? '2px solid var(--club-yellow-500)' : '2px solid transparent',
-                    borderRadius: 8, overflow: 'hidden', cursor: 'pointer', padding: 0,
-                    background: 'var(--club-blue-800)'
-                  }}>
+                <button
+                  key={card.id}
+                  onClick={() => handleSelectAvatar(card.photo)}
+                  className={user.avatar === card.photo ? styles.pickerCardActive : styles.pickerCard}
+                >
                   <Image src={card.photo} alt={card.firstName} width={70} height={50}
                     style={{ width: '100%', height: 'auto', display: 'block' }} />
                 </button>
@@ -167,61 +130,60 @@ export default function ComptePage() {
       )}
 
       {/* Edit form */}
-      <form onSubmit={handleSubmit} style={{
-        padding: '1.5rem', borderRadius: '12px',
-        border: '1px solid var(--club-blue-700)',
-        background: 'linear-gradient(180deg, var(--club-blue-800), var(--club-blue-900))'
-      }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-soft)', fontSize: '0.9rem', fontWeight: 600 }}>
-            Nom
-          </label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label}>Prenom</label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             disabled={isLoading}
-            style={{
-              width: '100%', padding: '0.65rem 0.75rem', borderRadius: '8px',
-              border: '1px solid var(--club-blue-700)', background: 'var(--club-blue-950)',
-              color: 'var(--text-main)', fontSize: '0.95rem', boxSizing: 'border-box'
-            }} />
+            className={styles.input}
+          />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.3rem', color: 'var(--text-soft)', fontSize: '0.9rem', fontWeight: 600 }}>
-            Email
-          </label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+        <div className={styles.field}>
+          <label className={styles.label}>Nom</label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             disabled={isLoading}
-            style={{
-              width: '100%', padding: '0.65rem 0.75rem', borderRadius: '8px',
-              border: '1px solid var(--club-blue-700)', background: 'var(--club-blue-950)',
-              color: 'var(--text-main)', fontSize: '0.95rem', boxSizing: 'border-box'
-            }} />
+            className={styles.input}
+          />
         </div>
 
-        {error && <div style={{
-          padding: '0.6rem 0.75rem', marginBottom: '1rem', borderRadius: '8px',
-          background: 'rgba(255, 80, 80, 0.15)', border: '1px solid rgba(255, 80, 80, 0.3)',
-          color: '#ff8080', fontSize: '0.9rem'
-        }}>{error}</div>}
+        <div className={styles.field}>
+          <label className={styles.label}>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            className={styles.input}
+          />
+        </div>
 
-        <button type="submit" disabled={isLoading} style={{
-          width: '100%', padding: '0.7rem', background: 'var(--club-yellow-500)',
-          color: 'var(--club-blue-950)', border: 'none', borderRadius: '8px',
-          fontSize: '1rem', fontWeight: 700, cursor: 'pointer', opacity: isLoading ? 0.6 : 1
-        }}>
-          {isLoading ? 'Mise à jour...' : 'Enregistrer'}
+        {error && <div className={styles.errorBox}>{error}</div>}
+
+        <button type="submit" disabled={isLoading} className={styles.submitBtn}>
+          {isLoading ? 'Mise a jour...' : 'Enregistrer les modifications'}
         </button>
       </form>
 
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <button onClick={logout} style={{
-          background: 'none', border: '1px solid rgba(255,80,80,0.3)',
-          color: '#ff8080', borderRadius: '8px', padding: '0.5rem 1.5rem',
-          cursor: 'pointer', fontSize: '0.9rem'
-        }}>
-          Déconnexion
+      {/* Logout */}
+      <div className={styles.logoutSection}>
+        <button onClick={logout} className={styles.logoutBtn}>
+          Deconnexion
         </button>
       </div>
+
+      {/* Toast */}
+      {showToast && (
+        <div className={styles.toast}>
+          Profil mis a jour avec succes.
+        </div>
+      )}
     </div>
   );
 }
