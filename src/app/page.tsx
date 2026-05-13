@@ -23,16 +23,17 @@ export default function HomePage() {
 
   return (
     <section className={styles.page}>
+      <div className={styles.watermark}></div>
       <div className={styles.left}>
-        <h2>Préparation aux échanges</h2>
-        <p>
-          Tu as actuellement <strong>{doublesCards.length}</strong> cartes différentes en double.
-        </p>
-        <button onClick={handleShare}>Partager mes doubles</button>
         <BoosterDraw />
       </div>
       <div className={styles.right}>
         <ProgressPanel />
+      </div>
+      <div className={styles.description}>
+        <p>
+          Bienvenue sur le projet ECC Panini, une plateforme dédiée à la collection et à l'échange de cartes du club. Créez votre collection, partagez vos doubles et connectez-vous avec d'autres passionnés !
+        </p>
       </div>
     </section>
   );

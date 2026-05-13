@@ -16,7 +16,7 @@ export function Header() {
 
   return (
     <header className={styles.header}>
-      <h1>ECC Panini</h1>
+      <h1 className={styles.logo}>ECC Panini</h1>
       <nav className={styles.nav}>
         <Link href="/">Accueil</Link>
         <Link href="/booster">Booster</Link>

@@ -16,14 +16,14 @@ export function CardTile({ card, quantity, showTradeButton = true }: CardTilePro
   return (
     <article className={`${styles.card} ${isOwned ? styles.owned : styles.missing} ${isDouble ? styles.double : ""}`}>
       <QuantityBadge quantity={quantity} />
-      <div className={styles.sideName}>{card.name}</div>
+      <div className={styles.sideName}>{card.firstName} {card.lastName}</div>
       <div className={styles.body}>
         <header className={styles.header}>
-          <h3>{card.name}</h3>
-          <small>#{card.number.toString().padStart(3, "0")} - Catégorie: {card.category}</small>
+          <h3>{card.firstName} {card.lastName}</h3>
+          <small>Catégorie: {card.category}</small>
         </header>
         <div className={styles.photoWrap}>
-          <Image className={styles.photo} src={card.photo} alt={`Photo ${card.name}`} width={640} height={360} />
+          <Image className={styles.photo} src={card.photo} alt={`Photo de ${card.firstName} ${card.lastName}`} width={640} height={360} />
         </div>
         {showTradeButton ? (
           <button className={styles.tradeBtn} disabled>

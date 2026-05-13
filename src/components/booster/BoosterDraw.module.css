@@ -37,6 +37,12 @@
   margin-bottom: 12px;
 }
 
+.loginPrompt {
+  color: #ff0000;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
 @keyframes duplicateGlow {
   from {
     box-shadow: 0 0 0 rgba(255, 212, 71, 0.15);
