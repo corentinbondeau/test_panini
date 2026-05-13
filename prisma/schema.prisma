@@ -41,8 +41,9 @@ model User {
 
   // Relations
   collections     UserCollection[]
-  sentExchanges   Exchange[]      @relation("Requester")
-  receivedExchanges Exchange[]    @relation("Recipient")
+  sentExchanges     Exchange[]      @relation("Requester")
+  receivedExchanges Exchange[]      @relation("Recipient")
+  tradeSessions     TradeSession[]  @relation("TradeCreator")
 }
 
 // User's card collection per season
@@ -83,5 +84,19 @@ model Exchange {
 
   @@index([requesterId])
   @@index([recipientId])
+  @@index([status])
+}
+
+// Trade session for room-code-based exchanges
+model TradeSession {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  code          String   @unique
+  creatorId     String   @db.ObjectId
+  cardOfferedId String
+  status        String   @default("OPEN") // OPEN, COMPLETED, EXPIRED
+  createdAt     DateTime @default(now())
+
+  creator User @relation("TradeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
   @@index([status])
 }

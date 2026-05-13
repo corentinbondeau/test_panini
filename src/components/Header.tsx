@@ -30,6 +30,7 @@ export function Header() {
           <Link href="/booster" onClick={() => setMenuOpen(false)}>Booster</Link>
           <Link href="/album" onClick={() => setMenuOpen(false)}>Album</Link>
           <Link href="/doubles" onClick={() => setMenuOpen(false)}>Mes doubles</Link>
+          <Link href="/echange" onClick={() => setMenuOpen(false)}>Échanges</Link>
           {isInitialized && (
             user ? (
               <Link href="/compte" className={styles.authLink} onClick={() => setMenuOpen(false)}>
