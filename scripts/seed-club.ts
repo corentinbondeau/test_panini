@@ -468,6 +468,11 @@ export const seedClubCards = (): Card[] => {
       team: "ECC Panini",
       photo: categoryPhoto(player.category),
       rarity: "commune",
+      collectionId: "s25-26",
+      imageUrl:
+        player.firstName === "Corentin" && player.lastName === "BONDEAU"
+          ? "/corentinbondeau.jpg"
+          : null,
     });
   });
 

@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useCollectionStore, BoosterCardDraw } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
+import { COLLECTIONS } from "@/data/cards";
+import { getCardsByCollection } from "@/data/clubCards";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -14,15 +17,21 @@ export default function BoosterPage() {
   const { user } = useAuthStore();
   const openBoosterPack = useCollectionStore((s) => s.openBoosterPack);
   const syncToServer = useCollectionStore((s) => s.syncToServer);
+  const storeActiveCollection = useCollectionStore((s) => s.activeCollectionId);
+  const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
   const [draws, setDraws] = useState<BoosterCardDraw[]>([]);
   const [phase, setPhase] = useState<"idle" | "shake" | "flash" | "reveal" | "done">("idle");
   const [revealedCount, setRevealedCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedCollectionId, setSelectedCollectionId] = useState(storeActiveCollection);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const allRevealed = revealedCount === PACK_SIZE;
   const currentDraw = draws[revealedCount];
   const remainingCount = PACK_SIZE - revealedCount;
+  const activeCards = getCardsByCollection(selectedCollectionId);
+  const hasCards = activeCards.length > 0;
+  const packImage = selectedCollectionId === "s26-27" ? "/2627.png" : "/2526.png";
 
   useEffect(() => {
     if (allRevealed && phase === "reveal") {
@@ -30,23 +39,28 @@ export default function BoosterPage() {
       const token = useAuthStore.getState().token;
       if (token) {
         setIsSyncing(true);
-        syncToServer(token).finally(() => setIsSyncing(false));
+        syncToServer(token, selectedCollectionId).finally(() => setIsSyncing(false));
       }
     }
-  }, [allRevealed, phase, syncToServer]);
+  }, [allRevealed, phase, syncToServer, selectedCollectionId]);
+
+  const handleCollectionChange = (id: string) => {
+    setSelectedCollectionId(id);
+    setActiveCollectionId(id);
+  };
 
   const handleOpen = useCallback(() => {
     setPhase("shake");
     setTimeout(() => {
       setPhase("flash");
       setTimeout(() => {
-        const nextDraws = openBoosterPack();
+        const nextDraws = openBoosterPack(selectedCollectionId);
         setDraws(nextDraws);
         setRevealedCount(0);
         setPhase("reveal");
       }, 600);
     }, 700);
-  }, [openBoosterPack]);
+  }, [openBoosterPack, selectedCollectionId]);
 
   const handleNextCard = () => {
     if (revealedCount < PACK_SIZE) {
@@ -72,13 +86,33 @@ export default function BoosterPage() {
         <h2>Pack de {PACK_SIZE} cartes</h2>
       </div>
 
+      {phase === "idle" && (
+        <div className={styles.collectionTabs}>
+          {COLLECTIONS.map((col) => {
+            const cardCount = getCardsByCollection(col.id).length;
+            const disabled = cardCount === 0;
+            return (
+              <button
+                key={col.id}
+                onClick={() => handleCollectionChange(col.id)}
+                disabled={disabled}
+                className={selectedCollectionId === col.id ? styles.collectionTabActive : styles.collectionTab}
+              >
+                {col.name}
+                {disabled && " (vide)"}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {isSyncing && <p className={styles.syncing}>Synchronisation...</p>}
 
       {/* Pack animation */}
       {(phase === "idle" || phase === "shake" || phase === "flash") && (
         <div className={styles.packArea}>
           <motion.div
-            className={styles.pack}
+            className={`${styles.pack} ${!hasCards && phase === "idle" ? styles.packDisabled : ""}`}
             animate={
               phase === "shake"
                 ? { x: [0, -8, 8, -6, 6, -4, 4, -2, 2, 0], rotate: [0, -3, 3, -2, 2, -1, 1, 0], scale: [1, 1.04, 0.96, 1.02, 0.98, 1] }
@@ -93,19 +127,15 @@ export default function BoosterPage() {
                 ? { duration: 0.5, ease: "easeOut" }
                 : {}
             }
-            onClick={phase === "idle" ? handleOpen : undefined}
+            onClick={phase === "idle" && hasCards ? handleOpen : undefined}
           >
             <div className={styles.packInner}>
-              {(phase === "idle" || phase === "shake") ? (
-                <>
-                  <span className={styles.packBadge}>ECC</span>
-                  <span className={styles.packSub}>Panini</span>
-                </>
-              ) : (
-                <img src="/Saison%2025-26.png" alt="" className={styles.packBackImg} />
-              )}
+              <img src={packImage} alt="" className={styles.packBackImg} />
             </div>
           </motion.div>
+          {!hasCards && phase === "idle" && (
+            <p className={styles.emptyWarning}>Cette collection ne contient pas encore de cartes.</p>
+          )}
           {phase === "shake" && <div className={styles.packGlow} />}
           {phase === "flash" && <div className={styles.flashOverlay} />}
         </div>
@@ -117,7 +147,7 @@ export default function BoosterPage() {
           {/* Current card face-up */}
           <motion.div
             key={revealedCount}
-            className={styles.currentCard}
+            className={`${styles.currentCard} ${currentDraw.card.imageUrl ? styles.currentCardReal : ""}`}
             initial={{ scale: 0.3, opacity: 0, rotateY: 180 }}
             animate={{ scale: 1, opacity: 1, rotateY: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -143,7 +173,7 @@ export default function BoosterPage() {
             <div className={styles.photoWrap}>
               <Image
                 className={styles.photo}
-                src={currentDraw.card.photo}
+                src={currentDraw.card.imageUrl || currentDraw.card.photo}
                 alt={`${currentDraw.card.firstName} ${currentDraw.card.lastName}`}
                 width={320}
                 height={180}
@@ -169,7 +199,7 @@ export default function BoosterPage() {
                       transform: `rotate(${(i - 1) * 2.5}deg)`,
                     }}
                   >
-                    <img src="/Saison%2025-26.png" alt="" className={styles.miniBack} />
+                    <img src={packImage} alt="" className={styles.miniBack} />
                   </div>
                 ))}
               </div>
@@ -194,7 +224,7 @@ export default function BoosterPage() {
                   >
                     <Image
                       className={styles.miniPhoto}
-                      src={draw.card.photo}
+                      src={draw.card.imageUrl || draw.card.photo}
                       alt={`${draw.card.firstName} ${draw.card.lastName}`}
                       width={80}
                       height={50}

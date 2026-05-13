@@ -10,6 +10,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// NOTE: The Card type is defined in TypeScript (src/data/cards.ts)
+// and includes an `imageUrl?: string | null` field for future real photos.
+// Cards are stored as JSON in UserCollection.cards — no Prisma model needed.
+
+// Collection / Season
+model Collection {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  userCollections UserCollection[]
+}
+
 // User model for authentication
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -21,22 +35,27 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  collection      UserCollection?
+  collections     UserCollection[]
   sentExchanges   Exchange[]      @relation("Requester")
   receivedExchanges Exchange[]    @relation("Recipient")
 }
 
-// User's card collection
+// User's card collection per season
 model UserCollection {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique @db.ObjectId
-  
-  // Store cards as JSON: { cardId: quantity, ... }
-  cards Json @default("{}")
-  
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  collectionId String   @db.ObjectId
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Store cards as JSON: { cardId: quantity, ... }
+  cards      Json       @default("{}")
+  updatedAt  DateTime   @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, collectionId])
+  @@index([userId])
+  @@index([collectionId])
 }
 
 // Exchange system between users
@@ -44,13 +63,13 @@ model Exchange {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
   requesterId      String   @db.ObjectId
   recipientId      String   @db.ObjectId
-  
+
   // Cards being offered/requested (stored as JSON: { cardId: quantity, ... })
   offeredCards     Json     // what requester is offering
   requestedCards   Json     // what requester wants
-  
+
   status           String   @default("pending") // pending, accepted, rejected, completed
-  
+
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

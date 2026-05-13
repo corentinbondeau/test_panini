@@ -41,12 +41,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create empty collection
-    await prisma.userCollection.create({
-      data: {
-        userId: user.id,
-      },
+    // Create empty collection for default season
+    const defaultCollection = await prisma.collection.findUnique({
+      where: { slug: "s25-26" },
     });
+
+    if (defaultCollection) {
+      await prisma.userCollection.create({
+        data: {
+          userId: user.id,
+          collectionId: defaultCollection.id,
+        },
+      });
+    }
 
     // Generate token
     const token = generateToken(user.id);

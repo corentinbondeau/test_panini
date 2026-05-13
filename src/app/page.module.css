@@ -60,3 +60,47 @@
     padding: 10px 0 0;
   }
 }
+
+/* --- Season selector --- */
+
+.selectorWrapper {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+.seasonTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tab {
+  border: 1px solid var(--club-blue-700);
+  border-radius: 8px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: rgba(31, 79, 145, 0.3);
+}
+
+.tabActive {
+  border: 1px solid var(--club-yellow-500);
+  border-radius: 8px;
+  padding: 7px 14px;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}

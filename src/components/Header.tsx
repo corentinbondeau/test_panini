@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import styles from './header.module.css';
 
@@ -17,7 +18,10 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.logo}>ECC Panini</Link>
+        <Link href="/" className={styles.logo}>
+          <Image src="/logo-club.png" alt="ECC" width={28} height={28} className={styles.logoImg} />
+          ECC Panini
+        </Link>
         <button className={styles.burger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           <span></span><span></span><span></span>
         </button>

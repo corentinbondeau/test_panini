@@ -2,9 +2,11 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { CLUB_CARDS, TOTAL_CARDS } from "@/data/clubCards";
 import { Card } from "@/data/cards";
-import { buildProgressByRole, getTotalDoubles, getUniqueCount } from "@/lib/stats";
+import { DEFAULT_COLLECTION_ID } from "@/data/cards";
+import { getCardsByCollection } from "@/data/clubCards";
+import { getTotalDoubles, getUniqueCount } from "@/lib/stats";
+import { buildProgressByRole } from "@/lib/stats";
 
 export type BoosterCardDraw = {
   card: Card;
@@ -14,18 +16,20 @@ export type BoosterCardDraw = {
 
 type CollectionState = {
   quantities: Record<string, number>;
+  activeCollectionId: string;
   lastDrawCardId: string | null;
   lastDrawWasDuplicate: boolean;
   syncError: string | null;
   addCard: (cardId: string, amount?: number) => void;
   setQuantity: (cardId: string, quantity: number) => void;
   removeCard: (cardId: string, amount?: number) => void;
-  drawRandomCard: () => Card;
-  openBoosterPack: () => BoosterCardDraw[];
+  setActiveCollectionId: (id: string) => void;
+  drawRandomCard: (collectionId?: string) => Card;
+  openBoosterPack: (collectionId?: string) => BoosterCardDraw[];
   resetCollection: () => void;
   getQuantity: (cardId: string) => number;
-  syncToServer: (token: string) => Promise<void>;
-  loadFromServer: (token: string) => Promise<void>;
+  syncToServer: (token: string, collectionId?: string) => Promise<void>;
+  loadFromServer: (token: string, collectionId?: string) => Promise<void>;
 };
 
 const safeStorage = createJSONStorage(() => localStorage);
@@ -34,9 +38,12 @@ export const useCollectionStore = create<CollectionState>()(
   persist(
     (set, get) => ({
       quantities: {},
+      activeCollectionId: DEFAULT_COLLECTION_ID,
       lastDrawCardId: null,
       lastDrawWasDuplicate: false,
       syncError: null,
+
+      setActiveCollectionId: (id) => set({ activeCollectionId: id }),
 
       addCard: (cardId, amount = 1) =>
         set((state) => {
@@ -79,21 +86,23 @@ export const useCollectionStore = create<CollectionState>()(
           return { quantities: next };
         }),
 
-      drawRandomCard: () => {
-        const randomIndex = Math.floor(Math.random() * CLUB_CARDS.length);
-        const card = CLUB_CARDS[randomIndex];
+      drawRandomCard: (collectionId) => {
+        const cards = getCardsByCollection(collectionId || get().activeCollectionId);
+        const randomIndex = Math.floor(Math.random() * cards.length);
+        const card = cards[randomIndex];
         get().addCard(card.id, 1);
         return card;
       },
 
-      openBoosterPack: () => {
+      openBoosterPack: (collectionId) => {
+        const cards = getCardsByCollection(collectionId || get().activeCollectionId);
         const currentQuantities = get().quantities;
         const nextQuantities = { ...currentQuantities };
         const draws: BoosterCardDraw[] = [];
 
         for (let i = 0; i < 5; i += 1) {
-          const randomIndex = Math.floor(Math.random() * CLUB_CARDS.length);
-          const card = CLUB_CARDS[randomIndex];
+          const randomIndex = Math.floor(Math.random() * cards.length);
+          const card = cards[randomIndex];
           const previous = nextQuantities[card.id] ?? 0;
           const next = previous + 1;
           nextQuantities[card.id] = next;
@@ -124,9 +133,10 @@ export const useCollectionStore = create<CollectionState>()(
 
       getQuantity: (cardId) => get().quantities[cardId] ?? 0,
 
-      syncToServer: async (token: string) => {
+      syncToServer: async (token, collectionId) => {
         try {
           const quantities = get().quantities;
+          const cid = collectionId || get().activeCollectionId;
           for (const [cardId, quantity] of Object.entries(quantities)) {
             await fetch('/api/collection', {
               method: 'POST',
@@ -134,7 +144,7 @@ export const useCollectionStore = create<CollectionState>()(
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify({ cardId, quantity }),
+              body: JSON.stringify({ cardId, quantity, collectionId: cid }),
             });
           }
           set({ syncError: null });
@@ -144,16 +154,19 @@ export const useCollectionStore = create<CollectionState>()(
         }
       },
 
-      loadFromServer: async (token: string) => {
+      loadFromServer: async (token, collectionId) => {
         try {
-          const response = await fetch('/api/collection', {
+          const cid = collectionId || get().activeCollectionId;
+          const response = await fetch(`/api/collection?collectionId=${encodeURIComponent(cid)}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
           if (response.ok) {
             const data = await response.json();
-            const serverCards = data.collection.cards as Record<string, number>;
-            set({ quantities: serverCards, syncError: null });
+            if (data.collection) {
+              const serverCards = data.collection.cards as Record<string, number>;
+              set({ quantities: serverCards, syncError: null });
+            }
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Load failed';
@@ -164,26 +177,37 @@ export const useCollectionStore = create<CollectionState>()(
     {
       name: "panini-collection-v2",
       storage: safeStorage,
-      partialize: (state) => ({ quantities: state.quantities }),
+      partialize: (state) => ({
+        quantities: state.quantities,
+        activeCollectionId: state.activeCollectionId,
+      }),
       version: 2
     }
   )
 );
 
-export const useCollectionSelectors = () => {
+export const useCollectionSelectors = (collectionId?: string) => {
   const quantities = useCollectionStore((state) => state.quantities);
+  const activeCollectionId = useCollectionStore((state) => state.activeCollectionId);
+  const cid = collectionId || activeCollectionId;
+  const cards = getCardsByCollection(cid);
+  const totalCards = cards.length;
+
   const uniqueCount = getUniqueCount(quantities);
   const doublesCount = getTotalDoubles(quantities);
-  const completionPercent = Math.round((uniqueCount / TOTAL_CARDS) * 100);
-  const progressByRole = buildProgressByRole(CLUB_CARDS, quantities);
-  const doublesCards = CLUB_CARDS.filter((card) => (quantities[card.id] ?? 0) >= 2);
+  const completionPercent = totalCards > 0 ? Math.round((uniqueCount / totalCards) * 100) : 0;
+  const progressByRole = buildProgressByRole(cards, quantities);
+  const doublesCards = cards.filter((card) => (quantities[card.id] ?? 0) >= 2);
 
   return {
     quantities,
+    activeCollectionId,
     uniqueCount,
     doublesCount,
     completionPercent,
     progressByRole,
-    doublesCards
+    doublesCards,
+    totalCards,
+    cards,
   };
 };

@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/authStore";
 import { useCollectionSelectors } from "@/store/collectionStore";
-import { TOTAL_CARDS } from "@/data/clubCards";
+import { COLLECTIONS, ALL_COLLECTIONS_ID } from "@/data/cards";
 import styles from "./ProgressPanel.module.css";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -11,15 +11,28 @@ const ROLE_LABELS: Record<string, string> = {
 
 const FALLBACK_ROLES = ["joueur", "coach", "dirigeant"] as const;
 
-export function ProgressPanel() {
+type ProgressPanelProps = {
+  collectionId?: string;
+};
+
+export function ProgressPanel({ collectionId }: ProgressPanelProps) {
   const { user } = useAuthStore();
-  const { uniqueCount, doublesCount, completionPercent, progressByRole } = useCollectionSelectors();
+  const { uniqueCount, doublesCount, completionPercent, progressByRole, totalCards } =
+    useCollectionSelectors(collectionId);
+
+  const isAll = collectionId === ALL_COLLECTIONS_ID;
+  const collectionName = isAll
+    ? "Toutes les collections"
+    : (COLLECTIONS.find((c) => c.id === collectionId)?.name ?? "");
 
   return (
     <section className={styles.wrapper}>
       <h2>Progression</h2>
+      {user && collectionName && (
+        <p className={styles.collectionName}>{collectionName}</p>
+      )}
       <p className={styles.global}>
-        Collection unique: <strong>{user ? uniqueCount : 0}</strong> / {TOTAL_CARDS} ({user ? completionPercent : 0}%)
+        Collection unique: <strong>{user ? uniqueCount : 0}</strong> / {totalCards} ({user ? completionPercent : 0}%)
       </p>
       <p className={styles.global}>
         Doubles totaux: <strong>{user ? doublesCount : 0}</strong>

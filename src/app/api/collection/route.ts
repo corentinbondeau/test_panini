@@ -1,40 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
+import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 
 export const dynamic = 'force-dynamic';
+
+function getCollectionId(request: NextRequest): string {
+  const url = new URL(request.url);
+  return url.searchParams.get('collectionId') || DEFAULT_COLLECTION_ID;
+}
 
 export async function GET(request: NextRequest) {
   try {
     const token = getTokenFromHeader(request.headers.get('authorization') || '');
-
     if (!token) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const collection = await prisma.userCollection.findUnique({
-      where: { userId: decoded.userId },
+    const collectionId = getCollectionId(request);
+
+    const userCollection = await prisma.userCollection.findUnique({
+      where: { userId_collectionId: { userId: decoded.userId, collectionId } },
     });
 
-    if (!collection) {
+    if (!userCollection) {
       return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
+        { collection: null },
+        { status: 200 }
       );
     }
 
-    return NextResponse.json({ collection }, { status: 200 });
+    return NextResponse.json({ collection: userCollection }, { status: 200 });
   } catch (error) {
     console.error('Get collection error:', error);
     return NextResponse.json(
@@ -47,24 +48,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const token = getTokenFromHeader(request.headers.get('authorization') || '');
-
     if (!token) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
     if (!decoded) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { cardId, quantity } = body;
+    const { cardId, quantity, collectionId: bodyCollectionId } = body;
+    const collectionId = bodyCollectionId || DEFAULT_COLLECTION_ID;
 
     if (!cardId || quantity === undefined) {
       return NextResponse.json(
@@ -73,18 +68,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const collection = await prisma.userCollection.findUnique({
-      where: { userId: decoded.userId },
+    let userCollection = await prisma.userCollection.findUnique({
+      where: { userId_collectionId: { userId: decoded.userId, collectionId } },
     });
 
-    if (!collection) {
-      return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
-      );
+    // Create collection record if it doesn't exist
+    if (!userCollection) {
+      const collection = await prisma.collection.findUnique({
+        where: { slug: collectionId },
+      });
+
+      if (!collection) {
+        return NextResponse.json(
+          { error: 'Collection not found' },
+          { status: 404 }
+        );
+      }
+
+      userCollection = await prisma.userCollection.create({
+        data: {
+          userId: decoded.userId,
+          collectionId: collection.id,
+          cards: {},
+        },
+      });
     }
 
-    const currentCards = (collection.cards as Record<string, number>) || {};
+    const currentCards = (userCollection.cards as Record<string, number>) || {};
 
     if (quantity <= 0) {
       delete currentCards[cardId];
@@ -92,12 +102,12 @@ export async function POST(request: NextRequest) {
       currentCards[cardId] = quantity;
     }
 
-    const updatedCollection = await prisma.userCollection.update({
-      where: { userId: decoded.userId },
+    const updated = await prisma.userCollection.update({
+      where: { id: userCollection.id },
       data: { cards: currentCards },
     });
 
-    return NextResponse.json({ collection: updatedCollection }, { status: 200 });
+    return NextResponse.json({ collection: updated }, { status: 200 });
   } catch (error) {
     console.error('Update collection error:', error);
     return NextResponse.json(

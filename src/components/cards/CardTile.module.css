@@ -1,8 +1,5 @@
 .card {
   position: relative;
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  min-height: 200px;
   border-radius: 12px;
   border: 1px solid var(--club-blue-700);
   background: linear-gradient(180deg, var(--club-blue-800) 0%, var(--club-blue-900) 100%);
@@ -19,7 +16,8 @@
 }
 
 .missing {
-  opacity: 0.35;
+  filter: grayscale(1);
+  opacity: 0.5;
 }
 
 .double {
@@ -27,49 +25,91 @@
   box-shadow: 0 0 0 1px rgba(243, 198, 35, 0.6), 0 0 18px rgba(243, 198, 35, 0.3);
 }
 
-.sideName {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.7rem;
-  color: var(--club-yellow-500);
-  border-right: 1px solid var(--club-blue-700);
-  padding: 10px 6px;
+.real {
+  position: relative;
+}
+
+.real::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  60% { background-position: -100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* --- Photo container (3:4 portrait) --- */
+
+.photoContainer {
+  position: relative;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.body {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.header h3 {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.header small {
-  color: var(--club-yellow-400);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-}
-
-.photoWrap {
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--club-blue-700);
   background: var(--club-blue-900);
 }
 
 .photo {
   display: block;
   width: 100%;
-  height: 100px;
+  height: 100%;
   object-fit: cover;
+}
+
+/* --- Gradient overlay at bottom --- */
+
+.gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(7, 20, 41, 0.92) 0%,
+    rgba(7, 20, 41, 0.5) 35%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* --- Name overlay --- */
+
+.nameOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.nameText {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  line-height: 1.2;
+}
+
+.categoryText {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--club-yellow-400);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
