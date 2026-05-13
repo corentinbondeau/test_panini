@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   description: "ECC Panini - Album de collection de cartes du club",
   icons: {
     icon: [
-      { url: "/logo.jpg", type: "image/jpeg" },
-      { url: "/logo.jpg", sizes: "32x32", type: "image/jpeg" },
-      { url: "/logo.jpg", sizes: "96x96", type: "image/jpeg" },
+      { url: "/logo-club.png", type: "image/png" },
+      { url: "/logo-club.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-club.png", sizes: "96x96", type: "image/png" },
     ],
-    apple: [{ url: "/logo.jpg", sizes: "180x180", type: "image/jpeg" }],
+    apple: [{ url: "/logo-club.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

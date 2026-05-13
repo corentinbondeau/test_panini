@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
@@ -8,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ComptePage() {
+  const router = useRouter();
   const { user, isLoading, updateProfile, checkAuth, logout } = useAuthStore();
   const { quantities } = useCollectionSelectors();
   const [name, setName] = useState('');
@@ -16,6 +18,7 @@ export default function ComptePage() {
   const [error, setError] = useState('');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
@@ -32,9 +35,11 @@ export default function ComptePage() {
     e.preventDefault();
     setSuccess('');
     setError('');
+    setSaved(false);
     try {
       await updateProfile({ name, email });
       setSuccess('Profil mis à jour avec succès.');
+      setSaved(true);
     } catch {
       setError('Erreur lors de la mise à jour.');
     }
@@ -47,9 +52,14 @@ export default function ComptePage() {
       await updateProfile({ avatar: photoUrl });
       setShowAvatarPicker(false);
       setSuccess('Avatar mis à jour avec succès.');
+      setSaved(true);
     } catch {
       setError('Erreur lors de la mise à jour de l\'avatar.');
     }
+  };
+
+  const handleBackToHome = () => {
+    router.push('/');
   };
 
   if (!isInitialized) {
@@ -79,6 +89,25 @@ export default function ComptePage() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '0 1rem' }}>
       <h1 style={{ color: 'var(--club-yellow-500)', textAlign: 'center' }}>Mon compte</h1>
+
+      {saved && (
+        <div style={{
+          textAlign: 'center', marginBottom: '1.5rem', padding: '1rem',
+          borderRadius: '12px', background: 'rgba(0, 200, 100, 0.15)',
+          border: '1px solid rgba(0, 200, 100, 0.3)'
+        }}>
+          <p style={{ color: '#80d0a0', margin: '0 0 0.75rem', fontWeight: 600 }}>
+            {success}
+          </p>
+          <button onClick={handleBackToHome} style={{
+            padding: '0.5rem 1.5rem', background: 'var(--club-yellow-500)',
+            color: 'var(--club-blue-950)', border: 'none', borderRadius: '8px',
+            fontWeight: 700, cursor: 'pointer'
+          }}>
+            {"Retour à l'accueil"}
+          </button>
+        </div>
+      )}
 
       {/* Avatar */}
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
@@ -168,12 +197,6 @@ export default function ComptePage() {
               color: 'var(--text-main)', fontSize: '0.95rem', boxSizing: 'border-box'
             }} />
         </div>
-
-        {success && <div style={{
-          padding: '0.6rem 0.75rem', marginBottom: '1rem', borderRadius: '8px',
-          background: 'rgba(0, 200, 100, 0.15)', border: '1px solid rgba(0, 200, 100, 0.3)',
-          color: '#80d0a0', fontSize: '0.9rem'
-        }}>{success}</div>}
 
         {error && <div style={{
           padding: '0.6rem 0.75rem', marginBottom: '1rem', borderRadius: '8px',
