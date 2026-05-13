@@ -91,7 +91,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
       {validationError && <div className={styles.error}>{validationError}</div>}
 
       <button type="submit" disabled={isLoading}>
-        {isLoading ? 'Inscription en cours...' : 'S&apos;inscrire'}
+        {isLoading ? 'Inscription en cours...' : "S'inscrire"}
       </button>
     </form>
   );
