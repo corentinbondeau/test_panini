@@ -451,6 +451,25 @@ const RAW_PLAYERS: RawPlayer[] = [
   { lastName: "VAN HONACKER", firstName: "Thomas", category: "Educateur Fédéral" },
 ];
 
+const PLAYER_PHOTOS: Record<string, string> = {
+  "Jan BARAN": "/images/saison2526/janbaran.jpg",
+  "Lucien BRAURE": "/images/saison2526/lucienbraure.jpg",
+  "Yann BROEHL": "/images/saison2526/yannbroehl.jpg",
+  "Charlie DASSONVILLE": "/images/saison2526/charliedassonville.jpg",
+  "Elio DE CASTRO": "/images/saison2526/eliodecastro.jpg",
+  "Axel DE KNUYT": "/images/saison2526/axeldeknuyt.jpg",
+  "Tom DUFLOT": "/images/saison2526/tomduflot.jpg",
+  "Evann DURIEUX": "/images/saison2526/evanndurieux.jpg",
+  "Simon FRANCHOMME": "/images/saison2526/simonfranchomme.jpg",
+  "Simon FRUIET": "/images/saison2526/simonfruiet.jpg",
+  "Aronn GRAND JEAN": "/images/saison2526/aronngrandjean.jpg",
+  "Louis LEBLANC": "/images/saison2526/louisleblanc.jpg",
+  "Natanel LETRILLARD": "/images/saison2526/natanelletrillard.jpg",
+  "Leon PICAVET": "/images/saison2526/leonpicavet.jpg",
+  "Sacha ROTY": "/images/saison2526/sacharoty.jpg",
+  "Mathis VANTIGHEM": "/images/saison2526/mathisvantighem.jpg",
+};
+
 export const seedClubCards = (): Card[] => {
   const cards: Card[] = [];
 
@@ -466,6 +485,11 @@ export const seedClubCards = (): Card[] => {
       player.category === "Senior"
     ) {
       imageUrl = "/corentinbondeau.jpg";
+    }
+
+    const photoKey = `${player.firstName} ${player.lastName}`;
+    if (PLAYER_PHOTOS[photoKey]) {
+      imageUrl = PLAYER_PHOTOS[photoKey];
     }
 
     cards.push({

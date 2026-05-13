@@ -61,6 +61,53 @@
   }
 }
 
+/* --- Exchange shortcut --- */
+
+.exchangeShortcut {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0d274e, #1a3f77);
+  border: 1px solid var(--club-blue-700);
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.exchangeShortcut:hover {
+  border-color: var(--club-yellow-500);
+  transform: scale(1.01);
+}
+
+.exchangeShortcutIcon {
+  font-size: 1.5rem;
+  color: var(--club-yellow-500);
+  line-height: 1;
+}
+
+.exchangeShortcutLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exchangeShortcutCount {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--club-yellow-500);
+}
+
+.exchangeShortcutArrow {
+  margin-left: auto;
+  color: var(--text-soft);
+  font-size: 1.2rem;
+}
+
 /* --- Season selector --- */
 
 .selectorWrapper {

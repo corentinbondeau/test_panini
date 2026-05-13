@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CardTile } from "@/components/cards/CardTile";
+import { CardModal } from "@/components/cards/CardModal";
 import { useCollectionStore, useCollectionSelectors } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
 import { COLLECTIONS, ALL_COLLECTIONS_ID } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
+import { Card } from "@/data/cards";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -22,6 +24,7 @@ export default function AlbumPage() {
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
   const token = useAuthStore((s) => s.token);
@@ -174,17 +177,28 @@ export default function AlbumPage() {
               <motion.div
                 key={card.id}
                 layout
+                layoutId={`card-${card.id}`}
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.92 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                <CardTile card={card} quantity={quantities[card.id] ?? 0} />
+                <CardTile card={card} quantity={quantities[card.id] ?? 0} onClick={() => setSelectedCard(card)} />
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       )}
+
+      <AnimatePresence>
+        {selectedCard && (
+          <CardModal
+            card={selectedCard}
+            quantity={quantities[selectedCard.id] ?? 0}
+            onClose={() => setSelectedCard(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

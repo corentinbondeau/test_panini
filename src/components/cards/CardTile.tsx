@@ -11,9 +11,10 @@ const FALLBACK_IMG = "/logo-club.png";
 type CardTileProps = {
   card: Card;
   quantity: number;
+  onClick?: () => void;
 };
 
-export function CardTile({ card, quantity }: CardTileProps) {
+export function CardTile({ card, quantity, onClick }: CardTileProps) {
   const isOwned = quantity > 0;
   const isDouble = quantity > 1;
   const [imgSrc, setImgSrc] = useState(card.imageUrl || card.photo);
@@ -27,7 +28,10 @@ export function CardTile({ card, quantity }: CardTileProps) {
   const hasRealPhoto = !!card.imageUrl;
 
   return (
-    <article className={`${styles.card} ${isOwned ? styles.owned : styles.missing} ${isDouble ? styles.double : ""} ${hasRealPhoto ? styles.real : ""}`}>
+    <article
+      className={`${styles.card} ${isOwned ? styles.owned : styles.missing} ${isDouble ? styles.double : ""} ${hasRealPhoto ? styles.real : ""} ${onClick ? styles.clickable : ""}`}
+      onClick={onClick}
+    >
       <QuantityBadge quantity={quantity} />
       <div className={styles.photoContainer}>
         <Image

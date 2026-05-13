@@ -1,0 +1,202 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modalCard {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  border-radius: 16px;
+  border: 2px solid var(--club-yellow-500);
+  background: linear-gradient(180deg, var(--club-blue-800) 0%, var(--club-blue-900) 100%);
+  overflow: hidden;
+  box-shadow:
+    0 0 30px rgba(243, 198, 35, 0.25),
+    0 0 60px rgba(243, 198, 35, 0.1);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.real {
+  box-shadow:
+    0 0 30px rgba(243, 198, 35, 0.35),
+    0 0 60px rgba(243, 198, 35, 0.15),
+    0 0 8px rgba(255, 255, 255, 0.08);
+}
+
+.missing {
+  border-color: var(--club-blue-700);
+  box-shadow: none;
+}
+
+/* --- Image --- */
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  max-height: 60vh;
+  overflow: hidden;
+  background: var(--club-blue-900);
+  flex-shrink: 0;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(7, 20, 41, 0.92) 0%,
+    rgba(7, 20, 41, 0.5) 35%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.nameOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nameText {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+}
+
+.categoryText {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--club-yellow-400);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 20, 41, 0.55);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.missing .image {
+  filter: grayscale(1);
+}
+
+/* --- Info --- */
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 18px;
+  flex: none;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.category {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--club-yellow-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.season {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+.status {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.ownedText {
+  color: #4ade80;
+}
+
+.missingText {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: rgba(251, 191, 36, 0.2);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  text-align: center;
+}
+
+/* --- Close button --- */
+
+.closeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  z-index: 2;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* --- Responsive --- */
+
+@media (min-width: 640px) {
+  .modalCard {
+    max-width: 380px;
+  }
+
+  .name {
+    font-size: 1.3rem;
+  }
+}

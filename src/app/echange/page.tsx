@@ -26,12 +26,21 @@ export default function EchangePage() {
   const [selectedGiveCardId, setSelectedGiveCardId] = useState<string>("");
 
   const [successOfferCard, setSuccessOfferCard] = useState<string>("");
+  const [tradesRemaining, setTradesRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     if (token) {
       loadCollection(token);
     }
   }, [token, loadCollection]);
+
+  useEffect(() => {
+    if (!token) { setTradesRemaining(null); return; }
+    fetch("/api/user/quotas", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => setTradesRemaining(d.tradesRemainingToday))
+      .catch(() => {});
+  }, [token]);
 
   const cardById = useMemo(
     () => CLUB_CARDS.reduce<Record<string, (typeof CLUB_CARDS)[number]>>((acc, card) => ({ ...acc, [card.id]: card }), {}),
@@ -160,7 +169,14 @@ export default function EchangePage() {
 
   return (
     <section className={styles.page}>
-      <h2 className={styles.title}>Échanges</h2>
+      <div className={styles.headerRow}>
+        <h2 className={styles.title}>Échanges</h2>
+        {tradesRemaining !== null && (
+          <span className={styles.tradeCount}>
+            {tradesRemaining} échange{tradesRemaining > 1 ? "s" : ""} restant{tradesRemaining > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
 
       {error && (
         <div className={styles.error}>
