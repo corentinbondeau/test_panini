@@ -135,6 +135,13 @@
   letter-spacing: 0.05em;
 }
 
+.rarityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .season {
   font-size: 0.75rem;
   font-weight: 500;

@@ -48,6 +48,70 @@
   cursor: not-allowed;
 }
 
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  width: 100%;
+  padding: 0.7rem 2.5rem 0.7rem 0.75rem;
+  border: 1px solid var(--club-blue-700);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--club-blue-950);
+  color: var(--text-main);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.passwordWrapper input:focus {
+  outline: none;
+  border-color: var(--club-yellow-500);
+  box-shadow: 0 0 0 2px rgba(243, 198, 35, 0.15);
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  width: auto !important;
+}
+
+.passwordToggle:hover {
+  opacity: 1;
+}
+
+.forgotLink {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.forgotLink a {
+  color: var(--club-yellow-500);
+  text-decoration: none;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.forgotLink a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .error {
   padding: 0.6rem 0.75rem;
   margin-bottom: 1rem;

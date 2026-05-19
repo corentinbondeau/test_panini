@@ -233,6 +233,17 @@ export async function POST(
         data: { status: 'COMPLETED' },
       });
 
+      // Log the trade
+      await tx.tradeLog.create({
+        data: {
+          giverId: joinerId,
+          receiverId: session.creatorId,
+          cardGivenId: cardGivenId,
+          cardReceivedId: session.cardOfferedId,
+          sessionCode: code.toUpperCase(),
+        },
+      });
+
       return {
         offeredCard: { id: offeredCard.id, firstName: offeredCard.firstName, lastName: offeredCard.lastName },
         givenCard: { id: givenCard.id, firstName: givenCard.firstName, lastName: givenCard.lastName },

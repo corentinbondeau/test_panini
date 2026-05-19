@@ -151,3 +151,48 @@
   font-weight: 700;
   white-space: nowrap;
 }
+
+/* --- CTA Banner for unauthenticated users --- */
+
+.ctaBanner {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, var(--club-blue-800) 0%, var(--club-blue-900) 100%);
+  border: 1px solid var(--club-yellow-500);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctaBanner h2 {
+  margin: 0;
+  color: var(--club-yellow-500);
+  font-size: 1.5rem;
+}
+
+.ctaBanner p {
+  margin: 0;
+  color: var(--text-soft);
+  max-width: 500px;
+}
+
+.ctaButton {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+
+.ctaButton:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+}

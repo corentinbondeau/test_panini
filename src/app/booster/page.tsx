@@ -6,8 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCollectionStore, BoosterCardDraw } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
-import { COLLECTIONS } from "@/data/cards";
+import { COLLECTIONS, CardRarity } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
+import { RarityBadge } from "@/components/cards/RarityBadge";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -225,6 +226,7 @@ export default function BoosterPage() {
           >
             <div className={styles.badges}>
               <span className={styles.role}>{currentDraw.card.category}</span>
+              <RarityBadge rarity={currentDraw.card.rarity as CardRarity} size="md" />
               {currentDraw.wasDuplicate && (
                 <span className={styles.doubleBadge}>
                   DOUBLE x{currentDraw.quantityAfter}
@@ -242,8 +244,8 @@ export default function BoosterPage() {
                 className={styles.photo}
                 src={currentDraw.card.imageUrl || currentDraw.card.photo}
                 alt={`${currentDraw.card.firstName} ${currentDraw.card.lastName}`}
-                width={320}
-                height={180}
+                width={640}
+                height={360}
               />
             </div>
             {revealedCount < PACK_SIZE && (

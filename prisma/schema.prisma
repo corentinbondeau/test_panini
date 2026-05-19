@@ -11,7 +11,7 @@ datasource db {
 }
 
 // NOTE: The Card type is defined in TypeScript (src/data/cards.ts)
-// and includes an `imageUrl?: string | null` field for future real photos.
+// and includes fields: rarity (COMMUNE | RARE | LEGENDAIRE), imageUrl?: string | null.
 // Cards are stored as JSON in UserCollection.cards — no Prisma model needed.
 
 // Collection / Season
@@ -39,11 +39,18 @@ model User {
   tradesMadeToday     Int      @default(0)
   lastResetDate       DateTime?
 
+  // Role: "member" or "admin"
+  role    String @default("member")
+
   // Relations
-  collections     UserCollection[]
-  sentExchanges     Exchange[]      @relation("Requester")
-  receivedExchanges Exchange[]      @relation("Recipient")
-  tradeSessions     TradeSession[]  @relation("TradeCreator")
+  collections       UserCollection[]
+  sentExchanges     Exchange[]        @relation("Requester")
+  receivedExchanges Exchange[]        @relation("Recipient")
+  tradeSessions     TradeSession[]    @relation("TradeCreator")
+  boosterLogs       BoosterLog[]
+  tradeLogsGiven    TradeLog[]        @relation("TradeGiver")
+  tradeLogsReceived TradeLog[]        @relation("TradeReceiver")
+  pushSubscriptions PushSubscription[]
 }
 
 // User's card collection per season
@@ -99,4 +106,61 @@ model TradeSession {
   creator User @relation("TradeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
 
   @@index([status])
+}
+
+// Password reset tokens for "forgot password" flow
+model PasswordResetToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Log of booster pack openings
+model BoosterLog {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  collectionId String   @db.ObjectId
+  cardIds      Json     // string[] of card IDs drawn
+  rarityCounts Json     // { COMMUNE: number, RARE: number, LEGENDAIRE: number }
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Log of completed trades
+model TradeLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  giverId     String   @db.ObjectId
+  receiverId  String   @db.ObjectId
+  cardGivenId String
+  cardReceivedId String
+  sessionCode String
+  createdAt   DateTime @default(now())
+
+  giver    User @relation("TradeGiver", fields: [giverId], references: [id], onDelete: Cascade)
+  receiver User @relation("TradeReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([giverId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+// Web Push subscriptions
+model PushSubscription {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  endpoint        String   @unique
+  p256dh          String
+  auth            String
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

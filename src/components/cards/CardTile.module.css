@@ -7,6 +7,14 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.rarityBadgeTop {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 10;
+  pointer-events: none;
+}
+
 .clickable {
   cursor: pointer;
 }
@@ -102,7 +110,7 @@
 }
 
 .nameText {
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #ffffff;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
@@ -110,10 +118,19 @@
 }
 
 .categoryText {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: var(--club-yellow-400);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+@media (min-width: 640px) {
+  .nameText {
+    font-size: 0.85rem;
+  }
+  .categoryText {
+    font-size: 0.68rem;
+  }
 }

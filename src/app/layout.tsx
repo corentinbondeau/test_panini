@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import styles from "./layout.module.css";
 import { Header } from "@/components/Header";
+import NotificationBanner from "@/components/NotificationBanner";
 
 export const metadata: Metadata = {
   title: "ECC Panini - Collection",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/logo-club.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className={styles.shell}>
           <Header />
           <main className={styles.main}>{children}</main>
+          <NotificationBanner />
         </div>
       </body>
     </html>

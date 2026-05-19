@@ -1,4 +1,4 @@
-import { Card, CardRole } from "../src/data/cards";
+import { Card, CardRole, CardRarity } from "../src/data/cards";
 
 // Role mapping based on category
 const categoryRole = (cat: string): CardRole => {
@@ -472,14 +472,20 @@ const PLAYER_PHOTOS: Record<string, string> = {
 
 export const seedClubCards = (): Card[] => {
   const cards: Card[] = [];
+  const rarities: CardRarity[] = ["COMMUNE", "RARE", "LEGENDAIRE"];
 
   RAW_PLAYERS.forEach((player, index) => {
     const role = categoryRole(player.category);
-    const id = `${role}-${(index + 1).toString().padStart(3, "0")}`;
 
     let imageUrl: string | null = null;
 
     if (
+      player.firstName === "Corentin" &&
+      player.lastName === "BONDEAU" &&
+      player.category === "Dirigeant"
+    ) {
+      imageUrl = null;
+    } else if (
       player.firstName === "Corentin" &&
       player.lastName === "BONDEAU" &&
       player.category === "Senior"
@@ -492,18 +498,21 @@ export const seedClubCards = (): Card[] => {
       imageUrl = PLAYER_PHOTOS[photoKey];
     }
 
-    cards.push({
-      id,
-      firstName: player.firstName,
-      lastName: player.lastName,
-      role,
-      category: player.category,
-      number: index + 1,
-      team: "ECC Panini",
-      photo: categoryPhoto(player.category),
-      rarity: "commune",
-      collectionId: "s25-26",
-      imageUrl,
+    rarities.forEach((rarity) => {
+      const id = `${role}-${(index + 1).toString().padStart(3, "0")}-${rarity.charAt(0).toUpperCase()}`;
+      cards.push({
+        id,
+        firstName: player.firstName,
+        lastName: player.lastName,
+        role,
+        category: player.category,
+        number: index + 1,
+        team: "ECC Panini",
+        photo: categoryPhoto(player.category),
+        rarity,
+        collectionId: "s25-26",
+        imageUrl,
+      });
     });
   });
 

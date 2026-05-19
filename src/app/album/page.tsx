@@ -69,7 +69,8 @@ export default function AlbumPage() {
       );
     }
     if (categoryFilter) {
-      cards = cards.filter((c) => c.category === categoryFilter);
+      const normalized = categoryFilter.trim().toLowerCase();
+      cards = cards.filter((c) => c.category.trim().toLowerCase() === normalized);
     }
     return cards;
   }, [collectionCards, search, categoryFilter]);

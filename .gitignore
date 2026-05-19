@@ -18,4 +18,8 @@ pnpm-debug.log*
 # local env files
 .env*.local
 
+# playwright
+/test-results
+/playwright-report
+
 /generated/prisma

@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name: name || email.split('@')[0],
+        role: 'member',
       },
     });
 
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
           email: user.email,
           name: user.name,
           avatar: user.avatar,
+          role: user.role,
         },
         token,
       },

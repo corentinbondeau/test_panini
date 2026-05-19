@@ -6,6 +6,31 @@ import { getCardsByCollection } from '@/data/clubCards';
 
 export const dynamic = 'force-dynamic';
 
+const RARITY_WEIGHTS = [
+  { rarity: 'COMMUNE', weight: 75 },
+  { rarity: 'RARE', weight: 20 },
+  { rarity: 'LEGENDAIRE', weight: 5 },
+];
+
+function pickRarity(): string {
+  const totalWeight = RARITY_WEIGHTS.reduce((sum, r) => sum + r.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const { rarity, weight } of RARITY_WEIGHTS) {
+    roll -= weight;
+    if (roll <= 0) return rarity;
+  }
+  return 'COMMUNE';
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const token = getTokenFromHeader(request.headers.get('authorization') || '');
@@ -45,7 +70,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cette collection ne contient pas encore de cartes' }, { status: 400 });
     }
 
-    const pool = [...cards];
+    const cardsByRarity: Record<string, typeof cards> = {};
+    for (const card of cards) {
+      if (!cardsByRarity[card.rarity]) cardsByRarity[card.rarity] = [];
+      cardsByRarity[card.rarity].push(card);
+    }
+
     const draws: Array<{
       cardId: string;
       card: {
@@ -81,11 +111,29 @@ export async function POST(request: NextRequest) {
 
     const currentCards = (userCollection.cards as Record<string, number>) || {};
 
+    const usedPlayerKeys = new Set<string>();
+
     for (let i = 0; i < 5; i++) {
-      if (pool.length === 0) break;
-      const randomIndex = Math.floor(Math.random() * pool.length);
-      const card = pool[randomIndex];
-      pool.splice(randomIndex, 1);
+      let card: (typeof cards)[number] | null = null;
+      let attempts = 0;
+
+      while (!card && attempts < 30) {
+        const targetRarity = pickRarity();
+        const rarityPool = cardsByRarity[targetRarity] ?? cards;
+        const available = rarityPool.filter(
+          (c) => !usedPlayerKeys.has(`${c.firstName}|${c.lastName}`)
+        );
+        if (available.length > 0) {
+          const shuffled = shuffleArray(available);
+          card = shuffled[0];
+        }
+        attempts++;
+      }
+
+      if (!card) continue;
+
+      const playerKey = `${card.firstName}|${card.lastName}`;
+      usedPlayerKeys.add(playerKey);
 
       const previous = currentCards[card.id] ?? 0;
       const next = previous + 1;
@@ -114,6 +162,20 @@ export async function POST(request: NextRequest) {
     await prisma.userCollection.update({
       where: { id: userCollection.id },
       data: { cards: currentCards },
+    });
+
+    // Log booster opening
+    const rarityCounts: Record<string, number> = {};
+    for (const d of draws) {
+      rarityCounts[d.card.rarity] = (rarityCounts[d.card.rarity] ?? 0) + 1;
+    }
+    await prisma.boosterLog.create({
+      data: {
+        userId: decoded.userId,
+        collectionId: collection.id,
+        cardIds: draws.map(d => d.cardId),
+        rarityCounts,
+      },
     });
 
     const boostersOpenedToday = await incrementBoosterCount(decoded.userId);

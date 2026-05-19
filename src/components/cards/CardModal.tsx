@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Card, COLLECTIONS } from "@/data/cards";
+import { RarityBadge } from "./RarityBadge";
 import styles from "./CardModal.module.css";
 
 const FALLBACK_IMG = "/logo-club.png";
@@ -75,7 +76,10 @@ export function CardModal({ card, quantity, onClose }: CardModalProps) {
           <h3 className={styles.name}>
             {card?.firstName} {card?.lastName}
           </h3>
-          <span className={styles.category}>{card?.category}</span>
+          <div className={styles.rarityRow}>
+            <span className={styles.category}>{card?.category}</span>
+            {card && <RarityBadge rarity={card.rarity} size="lg" />}
+          </div>
           {seasonName && <span className={styles.season}>{seasonName}</span>}
           <span className={`${styles.status} ${isOwned ? styles.ownedText : styles.missingText}`}>
             {isOwned

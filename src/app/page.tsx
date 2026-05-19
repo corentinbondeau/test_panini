@@ -13,10 +13,10 @@ const ALL_OPTION = { id: ALL_COLLECTIONS_ID, name: "Toutes les collections" };
 const TAB_OPTIONS = [ALL_OPTION, ...COLLECTIONS];
 
 export default function HomePage() {
+  const { user, token } = useAuthStore();
   const storeCollectionId = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
-  const token = useAuthStore((s) => s.token);
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [tradesRemaining, setTradesRemaining] = useState<number | null>(null);
 
@@ -38,6 +38,26 @@ export default function HomePage() {
     setSelectedCollection(id);
     setActiveCollectionId(id);
   };
+
+  if (!user) {
+    return (
+      <section className={styles.page}>
+        <div className={styles.watermark}></div>
+        <div className={styles.description}>
+          <p>
+            {"Bienvenue sur ECC Panini, la plateforme de collection de cartes du club. Collectionnez tous les joueurs, staff et dirigeants, ouvrez des boosters, et echangez vos doubles avec les autres supporters."}
+          </p>
+        </div>
+        <div className={styles.ctaBanner}>
+          <h2>Prêt à commencer votre collection ?</h2>
+          <p>Connectez-vous ou créez un compte pour ouvrir des boosters et collectionner les cartes de tous les membres du club.</p>
+          <Link href="/auth" className={styles.ctaButton}>
+            Se connecter / Rejoindre le club
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={styles.page}>

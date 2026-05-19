@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { useMemo } from "react";
 import { Card } from "@/data/cards";
 import { DEFAULT_COLLECTION_ID } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
@@ -182,11 +183,20 @@ export const useCollectionSelectors = (collectionId?: string) => {
   const cards = getCardsByCollection(cid);
   const totalCards = cards.length;
 
-  const uniqueCount = getUniqueCount(quantities);
-  const doublesCount = getTotalDoubles(quantities);
-  const completionPercent = totalCards > 0 ? Math.round((uniqueCount / totalCards) * 100) : 0;
-  const progressByRole = buildProgressByRole(cards, quantities);
-  const doublesCards = cards.filter((card) => (quantities[card.id] ?? 0) >= 2);
+  const uniqueCount = useMemo(() => getUniqueCount(quantities), [quantities]);
+  const doublesCount = useMemo(() => getTotalDoubles(quantities), [quantities]);
+  const completionPercent = useMemo(
+    () => (totalCards > 0 ? Math.round((uniqueCount / totalCards) * 100) : 0),
+    [uniqueCount, totalCards]
+  );
+  const progressByRole = useMemo(
+    () => buildProgressByRole(cards, quantities),
+    [cards, quantities]
+  );
+  const doublesCards = useMemo(
+    () => cards.filter((card) => (quantities[card.id] ?? 0) >= 2),
+    [cards, quantities]
+  );
 
   return {
     quantities,
