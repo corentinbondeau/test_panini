@@ -59,7 +59,7 @@ function buildResetEmailHtml(resetLink: string): string {
                 ECC PANINI
               </h1>
               <p style="color:#94a3b8;margin:0 0 32px;font-size:14px;">
-                Album de collection · Étoile Club Cœlacanthe
+                Album de collection · Étoile Club Camphin
               </p>
 
               <!-- Séparateur -->
@@ -107,7 +107,7 @@ function buildResetEmailHtml(resetLink: string): string {
               <!-- Footer -->
               <div style="height:1px;background:linear-gradient(90deg,transparent,#334155,transparent);margin-bottom:24px;"></div>
               <p style="color:#475569;margin:0;font-size:12px;">
-                ECC Panini — Étoile Club Cœlacanthe<br />
+                ECC Panini — Étoile Club Camphin<br />
                 Cet email est généré automatiquement, merci de ne pas y répondre.
               </p>
             </td>

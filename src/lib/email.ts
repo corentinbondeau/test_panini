@@ -86,7 +86,7 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
         <p style="margin:0 0 8px;font-size:14px;color:#8899aa;">Ce lien expire dans 1 heure.</p>
         <p style="margin:0;font-size:14px;color:#8899aa;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
         <hr style="border:none;border-top:1px solid #1a2a3a;margin:24px 0;" />
-        <p style="margin:0;font-size:12px;color:#667788;">ECC Panini — Étoile Club Cœlacanthe</p>
+        <p style="margin:0;font-size:12px;color:#667788;">ECC Panini — Étoile Club Camphin</p>
       </div>
     `,
   });
