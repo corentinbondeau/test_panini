@@ -7,14 +7,29 @@ export default function NotificationBanner() {
   const { user, token } = useAuthStore();
   const [dismissed, setDismissed] = useState(false);
   const [supported, setSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
     setSupported('serviceWorker' in navigator && 'PushManager' in window);
+    if ('Notification' in window) {
+      setPermission(Notification.permission);
+    }
   }, []);
+
+  // Ne jamais montrer la bannière si la permission est déjà accordée ou refusée
+  const shouldShow = user && !dismissed && supported && permission === 'default';
 
   async function handleSubscribe() {
     if (!supported || !user) return;
     try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        setPermission(perm);
+        setDismissed(true);
+        return;
+      }
+      setPermission('granted');
+
       const registration = await navigator.serviceWorker.register('/sw.js');
       const applicationServerKey = urlBase64ToUint8Array(
         process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
@@ -40,7 +55,7 @@ export default function NotificationBanner() {
     }
   }
 
-  if (!user || dismissed || !supported) return null;
+  if (!shouldShow) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 bg-[var(--card-bg)] border border-[var(--club-yellow-500)] rounded-lg p-4 shadow-lg max-w-sm">

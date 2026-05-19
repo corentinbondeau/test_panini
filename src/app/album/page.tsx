@@ -24,6 +24,7 @@ export default function AlbumPage() {
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [rarityFilter, setRarityFilter] = useState("");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
@@ -48,6 +49,7 @@ export default function AlbumPage() {
     setActiveCollectionId(id);
     setSearch("");
     setCategoryFilter("");
+    setRarityFilter("");
   };
 
   const collectionCards = getCardsByCollection(selectedCollection);
@@ -56,6 +58,11 @@ export default function AlbumPage() {
   const categories = useMemo(() => {
     const cats = new Set(collectionCards.map((c) => c.category));
     return Array.from(cats).sort();
+  }, [collectionCards]);
+
+  const rarities = useMemo(() => {
+    const r = new Set(collectionCards.map((c) => c.rarity));
+    return Array.from(r).sort();
   }, [collectionCards]);
 
   const filteredCards = useMemo(() => {
@@ -72,10 +79,13 @@ export default function AlbumPage() {
       const normalized = categoryFilter.trim().toLowerCase();
       cards = cards.filter((c) => c.category.trim().toLowerCase() === normalized);
     }
+    if (rarityFilter) {
+      cards = cards.filter((c) => c.rarity === rarityFilter);
+    }
     return cards;
-  }, [collectionCards, search, categoryFilter]);
+  }, [collectionCards, search, categoryFilter, rarityFilter]);
 
-  const hasActiveFilter = search.trim() !== "" || categoryFilter !== "";
+  const hasActiveFilter = search.trim() !== "" || categoryFilter !== "" || rarityFilter !== "";
 
   const handleReset = () => {
     setSearch("");
@@ -150,6 +160,26 @@ export default function AlbumPage() {
                 {cat}
               </button>
             ))}
+            {rarities.length > 1 && (
+              <>
+                <div className={styles.chipDivider} />
+                <button
+                  onClick={() => setRarityFilter("")}
+                  className={!rarityFilter ? styles.chipActive : styles.chip}
+                >
+                  Toutes
+                </button>
+                {rarities.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRarityFilter(r === rarityFilter ? "" : r)}
+                    className={r === rarityFilter ? styles.chipActive : styles.chip}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </>
+            )}
             {hasActiveFilter && (
               <button onClick={handleReset} className={styles.resetBtn}>
                 <svg className={styles.resetIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
