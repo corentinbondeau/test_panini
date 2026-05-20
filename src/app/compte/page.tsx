@@ -139,29 +139,47 @@ export default function ComptePage() {
     try {
       if (!pushEnabled) {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          console.warn('🔔 Navigateur ne supporte pas les notifications');
           setToastMessage('Notifications non supportées par votre navigateur.');
           setShowToast(true);
           return;
         }
+        if (!('Notification' in window)) {
+          console.warn('🔔 Notification API indisponible');
+          setToastMessage('API Notification indisponible sur ce navigateur.');
+          setShowToast(true);
+          return;
+        }
         const permission = await Notification.requestPermission();
+        console.log('🔔 Permission notification:', permission);
         if (permission !== 'granted') {
+          console.warn('🔔 Permission refusée');
           setToastMessage('Permission de notification refusée.');
           setShowToast(true);
           return;
         }
+        if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+          console.error('🔔 Clé VAPID publique manquante');
+          setToastMessage('Erreur de configuration serveur.');
+          setShowToast(true);
+          return;
+        }
         const registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('🔔 Service Worker enregistré');
         const existingSub = await registration.pushManager.getSubscription();
         if (existingSub) {
           await existingSub.unsubscribe();
+          console.log('🔔 Ancien abonnement résilié');
         }
         const applicationServerKey = urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const subscription = await (registration.pushManager as any).subscribe({
           userVisibleOnly: true,
           applicationServerKey,
         });
+        console.log('🔔 Abonnement PushManager réussi');
         const res = await fetch('/api/notifications/subscribe', {
           method: 'POST',
           headers: {
@@ -170,7 +188,11 @@ export default function ComptePage() {
           },
           body: JSON.stringify(subscription.toJSON()),
         });
-        if (!res.ok) throw new Error('Erreur subscription');
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Erreur serveur (${res.status}): ${text}`);
+        }
+        console.log('🔔 Abonnement envoyé au serveur');
         setPushEnabled(true);
         setToastMessage('Notifications activées.');
       } else {
@@ -185,14 +207,19 @@ export default function ComptePage() {
           },
           body: JSON.stringify({ endpoint }),
         });
-        if (!res.ok) throw new Error('Erreur désabonnement');
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Erreur serveur (${res.status}): ${text}`);
+        }
         if (sub) await sub.unsubscribe();
+        console.log('🔔 Désabonnement réussi');
         setPushEnabled(false);
         setToastMessage('Notifications désactivées.');
       }
       setShowToast(true);
-    } catch {
-      setToastMessage("Erreur lors de la gestion des notifications.");
+    } catch (err) {
+      console.error('🔔 Erreur notification:', err);
+      setToastMessage(`Erreur: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
       setShowToast(true);
     } finally {
       setPushLoading(false);

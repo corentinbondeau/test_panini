@@ -22,25 +22,38 @@ export default function NotificationBanner() {
   async function handleSubscribe() {
     if (!supported || !user) return;
     try {
+      if (!('Notification' in window)) {
+        console.warn('🔔 Le navigateur ne supporte pas les notifications');
+        setDismissed(true);
+        return;
+      }
       const perm = await Notification.requestPermission();
+      console.log('🔔 Permission notification:', perm);
       if (perm !== 'granted') {
+        console.warn('🔔 Permission refusée');
         setPermission(perm);
         setDismissed(true);
         return;
       }
       setPermission('granted');
 
+      if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+        console.error('🔔 Clé VAPID publique manquante');
+        return;
+      }
       const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('🔔 Service Worker enregistré');
       const applicationServerKey = urlBase64ToUint8Array(
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subscription = await (registration.pushManager as any).subscribe({
         userVisibleOnly: true,
         applicationServerKey,
       });
+      console.log('🔔 Abonnement push réussi');
 
-      await fetch('/api/notifications/subscribe', {
+      const res = await fetch('/api/notifications/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,9 +62,16 @@ export default function NotificationBanner() {
         body: JSON.stringify(subscription.toJSON()),
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Erreur serveur (${res.status}): ${text}`);
+      }
+
+      console.log('🔔 Abonnement envoyé au serveur');
       setDismissed(true);
     } catch (err) {
-      console.error('Notification subscription failed:', err);
+      console.error('🔔 Échec de l\'abonnement notification:', err);
+      alert(`Notification impossible: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
     }
   }
 

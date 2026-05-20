@@ -77,6 +77,8 @@ export default function BoosterPage() {
 
     try {
       const nextDraws = await openBoosterPackAsync(selectedCollectionId, token);
+      const rarityOrder: Record<string, number> = { 'COMMUNE': 0, 'RARE': 1, 'LEGENDAIRE': 2 };
+      nextDraws.sort((a, b) => (rarityOrder[a.card.rarity] ?? 0) - (rarityOrder[b.card.rarity] ?? 0));
       setDraws(nextDraws);
       setRevealedCount(0);
       setTimeout(() => {

@@ -8,6 +8,12 @@ self.addEventListener('push', function (event) {
       body: data.body || '',
       icon: data.icon || '/logo-club.png',
       badge: '/logo-club.png',
+      vibrate: data.vibrate || [200, 100, 200],
+      requireInteraction: data.requireInteraction !== false,
+      tag: data.tag || 'default',
+      data: {
+        url: data.url || '/',
+      },
     };
     event.waitUntil(self.registration.showNotification(title, options));
   } catch (e) {
@@ -15,6 +21,9 @@ self.addEventListener('push', function (event) {
     const options = {
       body: event.data.text(),
       icon: '/logo-club.png',
+      badge: '/logo-club.png',
+      vibrate: [200, 100, 200],
+      requireInteraction: true,
     };
     event.waitUntil(self.registration.showNotification(title, options));
   }
@@ -22,5 +31,6 @@ self.addEventListener('push', function (event) {
 
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow('/'));
+  const urlToOpen = event.notification.data?.url || '/';
+  event.waitUntil(clients.openWindow(urlToOpen));
 });

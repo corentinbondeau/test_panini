@@ -8,7 +8,7 @@ import { useCollectionStore, useCollectionSelectors } from "@/store/collectionSt
 import { useAuthStore } from "@/store/authStore";
 import { COLLECTIONS, ALL_COLLECTIONS_ID } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
-import { Card } from "@/data/cards";
+import { Card, CardRarity } from "@/data/cards";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -25,6 +25,7 @@ export default function AlbumPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [rarityFilter, setRarityFilter] = useState("");
+  const [onlyOwned, setOnlyOwned] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
@@ -62,7 +63,8 @@ export default function AlbumPage() {
 
   const rarities = useMemo(() => {
     const r = new Set(collectionCards.map((c) => c.rarity));
-    return Array.from(r).sort();
+    const order: CardRarity[] = ['COMMUNE', 'RARE', 'LEGENDAIRE'];
+    return order.filter((o) => r.has(o));
   }, [collectionCards]);
 
   const filteredCards = useMemo(() => {
@@ -82,8 +84,11 @@ export default function AlbumPage() {
     if (rarityFilter) {
       cards = cards.filter((c) => c.rarity === rarityFilter);
     }
+    if (onlyOwned) {
+      cards = cards.filter((c) => (quantities[c.id] ?? 0) > 0);
+    }
     return cards;
-  }, [collectionCards, search, categoryFilter, rarityFilter]);
+  }, [collectionCards, search, categoryFilter, rarityFilter, onlyOwned, quantities]);
 
   const hasActiveFilter = search.trim() !== "" || categoryFilter !== "" || rarityFilter !== "";
 
@@ -122,28 +127,43 @@ export default function AlbumPage() {
 
       {!isEmpty && (
         <div className={styles.filterBar}>
-          <div className={styles.searchWrapper}>
-            <svg
-              className={styles.searchIcon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Rechercher un joueur..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={styles.searchInput}
-            />
+          {/* Row 1a: Search + Possession toggle */}
+          <div className={styles.searchToggleRow}>
+            <div className={styles.searchWrapper}>
+              <svg
+                className={styles.searchIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Rechercher un joueur..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+            <label className={styles.toggleLabel}>
+              <button
+                onClick={() => setOnlyOwned(!onlyOwned)}
+                className={`${styles.toggleSwitch} ${onlyOwned ? styles.toggleActive : ''}`}
+                role="switch"
+                aria-checked={onlyOwned}
+              >
+                <span className={styles.toggleKnob} />
+              </button>
+              <span className={styles.toggleText}>Uniquement mes cartes</span>
+            </label>
           </div>
 
+          {/* Row 1b: Category filters */}
           <div className={`${styles.chipRow} ${styles.chipRowGap}`}>
             <button
               onClick={() => setCategoryFilter("")}
@@ -160,26 +180,6 @@ export default function AlbumPage() {
                 {cat}
               </button>
             ))}
-            {rarities.length > 1 && (
-              <>
-                <div className={styles.chipDivider} />
-                <button
-                  onClick={() => setRarityFilter("")}
-                  className={!rarityFilter ? styles.chipActive : styles.chip}
-                >
-                  Toutes
-                </button>
-                {rarities.map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setRarityFilter(r === rarityFilter ? "" : r)}
-                    className={r === rarityFilter ? styles.chipActive : styles.chip}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </>
-            )}
             {hasActiveFilter && (
               <button onClick={handleReset} className={styles.resetBtn}>
                 <svg className={styles.resetIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -190,6 +190,27 @@ export default function AlbumPage() {
               </button>
             )}
           </div>
+
+          {/* Row 2: Rarity filters only */}
+          {rarities.length > 1 && (
+            <div className={`${styles.chipRow} ${styles.chipRowCentered}`}>
+              <button
+                onClick={() => setRarityFilter("")}
+                className={!rarityFilter ? styles.chipActive : styles.chip}
+              >
+                Toutes
+              </button>
+              {rarities.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRarityFilter(r === rarityFilter ? "" : r)}
+                  className={r === rarityFilter ? styles.chipActive : styles.chip}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

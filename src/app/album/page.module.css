@@ -180,6 +180,73 @@
   align-self: center;
 }
 
+/* --- Search + Toggle row --- */
+
+.searchToggleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchToggleRow .searchWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--club-blue-700);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.25s;
+}
+
+.toggleActive {
+  background: var(--club-yellow-500);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggleActive .toggleKnob {
+  transform: translateX(20px);
+}
+
+.toggleText {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chipRowCentered {
+  justify-content: center;
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
 /* --- Grid --- */
 
 .grid {
