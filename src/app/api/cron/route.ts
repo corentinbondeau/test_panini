@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const subscriptions = await prisma.pushSubscription.findMany();
     
     const title = '⚡ ECC Panini';
-    const message = "Rappel quotidien : Tes boosters du jour sont disponibles ! Viens les ouvrir. 🏆";
+    const message = "Tes boosters du jour sont disponibles ! Viens les ouvrir. 🏆";
     
     let sent = 0;
     let failed = 0;
