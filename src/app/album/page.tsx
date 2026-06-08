@@ -27,6 +27,7 @@ export default function AlbumPage() {
   const [rarityFilter, setRarityFilter] = useState("");
   const [onlyOwned, setOnlyOwned] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [collectionLoading, setCollectionLoading] = useState(false);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
   const token = useAuthStore((s) => s.token);
@@ -37,7 +38,8 @@ export default function AlbumPage() {
 
   useEffect(() => {
     if (token) {
-      loadCollection(token, selectedCollection);
+      setCollectionLoading(true);
+      loadCollection(token, selectedCollection).finally(() => setCollectionLoading(false));
     }
   }, [token, selectedCollection, loadCollection]);
 
@@ -51,41 +53,49 @@ export default function AlbumPage() {
     setSearch("");
     setCategoryFilter("");
     setRarityFilter("");
+    setSelectedCard(null);
   };
 
-  const collectionCards = getCardsByCollection(selectedCollection);
+  const collectionCards = useMemo(
+    () => getCardsByCollection(selectedCollection) ?? [],
+    [selectedCollection]
+  );
+
   const isEmpty = collectionCards.length === 0 && selectedCollection !== ALL_COLLECTIONS_ID;
 
   const categories = useMemo(() => {
-    const cats = new Set(collectionCards.map((c) => c.category));
+    if (!collectionCards?.length) return [];
+    const cats = new Set(collectionCards.map((c) => c?.category).filter(Boolean));
     return Array.from(cats).sort();
   }, [collectionCards]);
 
   const rarities = useMemo(() => {
-    const r = new Set(collectionCards.map((c) => c.rarity));
+    if (!collectionCards?.length) return [];
+    const r = new Set(collectionCards.map((c) => c?.rarity).filter(Boolean));
     const order: CardRarity[] = ['COMMUNE', 'RARE', 'LEGENDAIRE'];
     return order.filter((o) => r.has(o));
   }, [collectionCards]);
 
   const filteredCards = useMemo(() => {
     let cards = collectionCards;
+    if (!cards?.length) return [];
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       cards = cards.filter(
         (c) =>
-          c.firstName.toLowerCase().includes(q) ||
-          c.lastName.toLowerCase().includes(q)
+          (c?.firstName?.toLowerCase() ?? '').includes(q) ||
+          (c?.lastName?.toLowerCase() ?? '').includes(q)
       );
     }
     if (categoryFilter) {
       const normalized = categoryFilter.trim().toLowerCase();
-      cards = cards.filter((c) => c.category.trim().toLowerCase() === normalized);
+      cards = cards.filter((c) => (c?.category?.trim()?.toLowerCase() ?? '') === normalized);
     }
     if (rarityFilter) {
-      cards = cards.filter((c) => c.rarity === rarityFilter);
+      cards = cards.filter((c) => c?.rarity === rarityFilter);
     }
     if (onlyOwned) {
-      cards = cards.filter((c) => (quantities[c.id] ?? 0) > 0);
+      cards = cards.filter((c) => (quantities?.[c?.id] ?? 0) > 0);
     }
     return cards;
   }, [collectionCards, search, categoryFilter, rarityFilter, onlyOwned, quantities]);
@@ -95,6 +105,7 @@ export default function AlbumPage() {
   const handleReset = () => {
     setSearch("");
     setCategoryFilter("");
+    setRarityFilter("");
   };
 
   if (!isInitialized) {
@@ -214,7 +225,9 @@ export default function AlbumPage() {
         </div>
       )}
 
-      {isEmpty ? (
+      {collectionLoading ? (
+        <p className={styles.loading}>Chargement de la collection...</p>
+      ) : isEmpty ? (
         <p className={styles.emptyMessage}>
           {"Vous n'avez pas encore commence cette collection !"}
         </p>
