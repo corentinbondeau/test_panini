@@ -13,20 +13,24 @@ import Link from "next/link";
 import styles from "./page.module.css";
 
 const PACK_SIZE = 5;
+const MASS_PACK_COUNT = 10;
+const MASS_TOTAL_CARDS = MASS_PACK_COUNT * PACK_SIZE;
 const MAX_BOOSTERS = 25;
 
 export default function BoosterPage() {
   const { user, token } = useAuthStore();
   const openBoosterPackAsync = useCollectionStore((s) => s.openBoosterPackAsync);
   const loadFromServer = useCollectionStore((s) => s.loadFromServer);
+  const setQuantities = useCollectionStore((s) => s.setQuantities);
   const storeActiveCollection = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
   const [draws, setDraws] = useState<BoosterCardDraw[]>([]);
-  const [phase, setPhase] = useState<"idle" | "loading" | "shake" | "flash" | "reveal" | "done">("idle");
+  const [phase, setPhase] = useState<"idle" | "loading" | "shake" | "flash" | "reveal" | "done" | "mass-done">("idle");
   const [revealedCount, setRevealedCount] = useState(0);
   const [selectedCollectionId, setSelectedCollectionId] = useState(storeActiveCollection);
   const [boostersRemaining, setBoostersRemaining] = useState(MAX_BOOSTERS);
   const [error, setError] = useState<string | null>(null);
+  const [isMassOpen, setIsMassOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const allRevealed = revealedCount === PACK_SIZE;
@@ -36,6 +40,7 @@ export default function BoosterPage() {
   const hasCards = activeCards.length > 0;
   const packImage = selectedCollectionId === "s26-27" ? "/2627.png" : "/2526.png";
   const limitReached = boostersRemaining <= 0;
+  const canOpenTen = boostersRemaining >= 10 && !isMassOpen;
 
   useEffect(() => {
     if (!user || !token) return;
@@ -73,6 +78,7 @@ export default function BoosterPage() {
   const handleOpen = useCallback(async () => {
     if (!token) return;
     setError(null);
+    setIsMassOpen(false);
     setPhase("loading");
 
     try {
@@ -101,6 +107,59 @@ export default function BoosterPage() {
     }
   }, [openBoosterPackAsync, selectedCollectionId, token]);
 
+  const handleOpenTen = useCallback(async () => {
+    if (!token) return;
+    setError(null);
+    setIsMassOpen(true);
+    setPhase("loading");
+
+    try {
+      const res = await fetch('/api/booster/open-ten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ collectionId: selectedCollectionId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erreur lors de l'ouverture");
+      }
+
+      const data = await res.json();
+      const nextDraws: BoosterCardDraw[] = data.cards;
+
+      setDraws(nextDraws);
+      setQuantities(data.quantities || {});
+
+      const rarityOrder: Record<string, number> = { 'COMMUNE': 0, 'RARE': 1, 'LEGENDAIRE': 2 };
+      const sorted = [...nextDraws].sort((a, b) => (rarityOrder[a.card.rarity] ?? 0) - (rarityOrder[b.card.rarity] ?? 0));
+      setDraws(sorted);
+      setBoostersRemaining(data.boostersRemainingToday ?? 0);
+
+      setTimeout(() => {
+        setPhase("shake");
+        setTimeout(() => {
+          setPhase("flash");
+          setTimeout(() => {
+            setPhase("mass-done");
+          }, 600);
+        }, 700);
+      }, 300);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur inconnue";
+      if (message.includes("Limite") || message.includes("limite")) {
+        setError("Limite quotidienne atteinte ou insuffisante");
+      } else {
+        setError(message);
+      }
+      setPhase("idle");
+      setIsMassOpen(false);
+    }
+  }, [openBoosterPackAsync, selectedCollectionId, token, setQuantities]);
+
   const handleNextCard = () => {
     if (revealedCount < PACK_SIZE) {
       setRevealedCount((prev) => prev + 1);
@@ -112,6 +171,7 @@ export default function BoosterPage() {
     setPhase("idle");
     setRevealedCount(0);
     setError(null);
+    setIsMassOpen(false);
     if (token) {
       fetch('/api/user/quotas', {
         headers: { Authorization: `Bearer ${token}` },
@@ -146,23 +206,36 @@ export default function BoosterPage() {
       </div>
 
       {phase === "idle" && (
-        <div className={styles.collectionTabs}>
-          {COLLECTIONS.map((col) => {
-            const cardCount = getCardsByCollection(col.id).length;
-            const disabled = cardCount === 0;
-            return (
+        <>
+          <div className={styles.collectionTabs}>
+            {COLLECTIONS.map((col) => {
+              const cardCount = getCardsByCollection(col.id).length;
+              const disabled = cardCount === 0;
+              return (
+                <button
+                  key={col.id}
+                  onClick={() => handleCollectionChange(col.id)}
+                  disabled={disabled}
+                  className={selectedCollectionId === col.id ? styles.collectionTabActive : styles.collectionTab}
+                >
+                  {col.name}
+                  {disabled && " (vide)"}
+                </button>
+              );
+            })}
+          </div>
+
+          {canOpenTen && (
+            <div className={styles.massOpenRow}>
               <button
-                key={col.id}
-                onClick={() => handleCollectionChange(col.id)}
-                disabled={disabled}
-                className={selectedCollectionId === col.id ? styles.collectionTabActive : styles.collectionTab}
+                onClick={handleOpenTen}
+                className={styles.massOpenBtn}
               >
-                {col.name}
-                {disabled && " (vide)"}
+                Ouvrir 10 Boosters ({MASS_TOTAL_CARDS} cartes)
               </button>
-            );
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Error message */}
@@ -199,13 +272,16 @@ export default function BoosterPage() {
               <img src={packImage} alt="" className={styles.packBackImg} />
             </div>
           </motion.div>
+          {isMassOpen && phase === "loading" && (
+            <p className={styles.massLoadingText}>Ouverture de 10 boosters...</p>
+          )}
           {limitReached && phase === "idle" && (
             <p className={styles.emptyWarning}>Limite quotidienne atteinte (25/25)</p>
           )}
           {!hasCards && phase === "idle" && (
             <p className={styles.emptyWarning}>Cette collection ne contient pas encore de cartes.</p>
           )}
-          {phase === "loading" && <div className={styles.packGlow} />}
+          {phase === "loading" && !isMassOpen && <div className={styles.packGlow} />}
           {phase === "shake" && <div className={styles.packGlow} />}
           {phase === "flash" && <div className={styles.flashOverlay} />}
         </div>
@@ -311,7 +387,7 @@ export default function BoosterPage() {
         </div>
       )}
 
-      {/* Done summary */}
+      {/* Done summary (single booster) */}
       <AnimatePresence>
         {phase === "done" && (
           <motion.div
@@ -331,6 +407,73 @@ export default function BoosterPage() {
               className={styles.openBtn}
             >
               {limitReached ? "Limite quotidienne atteinte" : "Ouvrir un autre booster"}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mass opening result grid */}
+      <AnimatePresence>
+        {phase === "mass-done" && draws.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.massSummary}
+          >
+            <h3 className={styles.massTitle}>
+              {MASS_PACK_COUNT} boosters ouverts — {draws.length} cartes obtenues
+            </h3>
+            <p className={styles.massSubtitle}>
+              {draws.filter((d) => d.wasDuplicate).length} double(s) · 
+              {draws.filter((d) => d.card.rarity === 'LEGENDAIRE').length} légendaire(s) · 
+              {draws.filter((d) => d.card.rarity === 'RARE').length} rare(s) · 
+              {draws.filter((d) => d.card.rarity === 'COMMUNE').length} commune(s)
+            </p>
+
+            <div className={styles.massGrid}>
+              {draws.map((draw, index) => (
+                <motion.div
+                  key={`${draw.card.id}-${index}`}
+                  className={styles.massGridCard}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.01, duration: 0.15 }}
+                >
+                  <div className={styles.massGridPhotoWrap}>
+                    <Image
+                      className={styles.massGridPhoto}
+                      src={draw.card.imageUrl || draw.card.photo}
+                      alt={`${draw.card.firstName} ${draw.card.lastName}`}
+                      width={120}
+                      height={80}
+                    />
+                  </div>
+                  <span className={styles.massGridRarity}
+                    style={{
+                      color: draw.card.rarity === 'LEGENDAIRE' ? '#a855f7' : draw.card.rarity === 'RARE' ? '#f59e0b' : '#9ca3af'
+                    }}
+                  >
+                    {draw.card.rarity === 'LEGENDAIRE' ? 'L' : draw.card.rarity === 'RARE' ? 'R' : 'C'}
+                  </span>
+                  <span className={styles.massGridName}>
+                    {draw.card.firstName?.slice(0, 1)}. {draw.card.lastName}
+                  </span>
+                  {draw.wasDuplicate && (
+                    <span className={styles.massGridDouble}>x{draw.quantityAfter}</span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            <p className={styles.quotaSummary}>
+              Boosters restants aujourd&apos;hui : {boostersRemaining}
+            </p>
+            <button
+              onClick={handleReset}
+              disabled={limitReached}
+              className={styles.openBtn}
+            >
+              {limitReached ? "Limite quotidienne atteinte" : "Ouvrir des boosters"}
             </button>
           </motion.div>
         )}

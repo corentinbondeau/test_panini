@@ -428,6 +428,133 @@
   opacity: 0.85;
 }
 
+/* --- Mass opening button --- */
+
+.massOpenRow {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0;
+}
+
+.massOpenBtn {
+  border: 2px dashed var(--club-yellow-500);
+  border-radius: 10px;
+  padding: 10px 20px;
+  background: rgba(243, 198, 35, 0.08);
+  color: var(--club-yellow-500);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.massOpenBtn:hover {
+  background: rgba(243, 198, 35, 0.15);
+  transform: scale(1.02);
+}
+
+.massLoadingText {
+  text-align: center;
+  color: var(--club-yellow-500);
+  font-weight: 600;
+  margin: 8px 0 0;
+}
+
+/* --- Mass opening results --- */
+
+.massSummary {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--club-blue-900);
+  border-radius: 12px;
+  border: 1px solid var(--club-blue-700);
+  display: grid;
+  gap: 12px;
+}
+
+.massTitle {
+  margin: 0;
+  color: var(--club-yellow-500);
+  font-size: 1.1rem;
+}
+
+.massSubtitle {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.massGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid var(--club-blue-800);
+}
+
+.massGridCard {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgba(11, 31, 63, 0.5);
+  border: 1px solid var(--club-blue-800);
+  position: relative;
+}
+
+.massGridPhotoWrap {
+  width: 100%;
+  aspect-ratio: 3/2;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--club-blue-950);
+}
+
+.massGridPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.massGridRarity {
+  font-size: 0.6rem;
+  font-weight: 800;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.massGridName {
+  font-size: 0.6rem;
+  color: var(--text-soft);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.massGridDouble {
+  font-size: 0.55rem;
+  background: var(--club-yellow-400);
+  color: var(--club-blue-950);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  display: inline-block;
+  width: fit-content;
+  justify-self: center;
+}
+
 @keyframes pulseGlow {
   from { opacity: 0.5; }
   to { opacity: 1; }
