@@ -17,10 +17,11 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, avatar } = body;
+    const { firstName, lastName, email, avatar } = body;
 
     const updateData: Record<string, string> = {};
-    if (name !== undefined) updateData.name = name;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
     if (email !== undefined) updateData.email = email;
     if (avatar !== undefined) updateData.avatar = avatar;
 
@@ -34,8 +35,10 @@ export async function PUT(request: NextRequest) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         avatar: true,
+        role: true,
         createdAt: true,
       },
     });

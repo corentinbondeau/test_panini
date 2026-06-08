@@ -4,7 +4,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export interface User {
   id: string;
   email: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
   avatar?: string;
   role?: string;
   createdAt?: string;
@@ -21,11 +22,11 @@ interface AuthStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
-  updateProfile: (data: { name?: string; email?: string; avatar?: string }) => Promise<void>;
+  updateProfile: (data: { firstName?: string; lastName?: string; email?: string; avatar?: string }) => Promise<void>;
 }
 
 const safeStorage = createJSONStorage(() => localStorage);
@@ -43,18 +44,18 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
 
-      register: async (email, password, name) => {
+      register: async (email, password, firstName, lastName) => {
         set({ isLoading: true, error: null });
         try {
           const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, name }),
+            body: JSON.stringify({ email, password, firstName, lastName }),
           });
 
           if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.error || 'Registration failed');
+            throw new Error(data.error || "Erreur lors de l'inscription");
           }
 
           const data = await response.json();
@@ -64,7 +65,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+          const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'inscription";
           set({ error: errorMessage });
           throw error;
         } finally {
@@ -83,7 +84,7 @@ export const useAuthStore = create<AuthStore>()(
 
           if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.error || 'Login failed');
+            throw new Error(data.error || 'Erreur de connexion');
           }
 
           const data = await response.json();
@@ -93,7 +94,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Login failed';
+          const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
           set({ error: errorMessage });
           throw error;
         } finally {

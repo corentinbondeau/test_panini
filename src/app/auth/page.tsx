@@ -35,9 +35,8 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      const parts = (user.name || '').split(' ');
-      setFirstName(parts.slice(0, -1).join(' '));
-      setLastName(parts.pop() || '');
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
       setEmail(user.email || '');
     }
   }, [user]);
@@ -53,8 +52,7 @@ export default function AuthPage() {
     e.preventDefault();
     setError('');
     try {
-      const fullName = `${firstName} ${lastName}`.trim();
-      await updateProfile({ name: fullName, email });
+      await updateProfile({ firstName, lastName, email });
       setShowToast(true);
     } catch {
       setError('Erreur lors de la mise a jour.');
@@ -89,7 +87,7 @@ export default function AuthPage() {
               <img src={user.avatar} alt="" className={styles.avatarImg} />
             ) : (
               <div className={styles.avatarLetter}>
-                {user.name?.charAt(0)?.toUpperCase() || '?'}
+                {(user.firstName?.charAt(0) || user.email?.charAt(0) || '?').toUpperCase()}
               </div>
             )}
           </div>

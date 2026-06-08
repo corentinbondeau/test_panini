@@ -8,16 +8,19 @@ import styles from './Auth.module.css';
 export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const { register, isLoading, error } = useAuthStore();
   const [validationError, setValidationError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError('');
+    setEmailError('');
 
     if (password !== passwordConfirm) {
       setValidationError('Les mots de passe ne correspondent pas');
@@ -30,24 +33,38 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
     }
 
     try {
-      await register(email, password, name);
+      await register(email, password, firstName || undefined, lastName || undefined);
       onSuccess?.();
-    } catch {
-      // Error is handled by the store
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('déjà utilisée')) {
+        setEmailError(msg);
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <h2>Inscription</h2>
-      
+
       <div className={styles.formGroup}>
-        <label htmlFor="name">Nom</label>
+        <label htmlFor="firstName">Prénom</label>
         <input
-          id="name"
+          id="firstName"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className={styles.formGroup}>
+        <label htmlFor="lastName">Nom</label>
+        <input
+          id="lastName"
+          type="text"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
           disabled={isLoading}
         />
       </div>
@@ -58,10 +75,14 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (emailError) setEmailError('');
+          }}
           disabled={isLoading}
           required
         />
+        {emailError && <div className={styles.fieldError}>{emailError}</div>}
       </div>
 
       <div className={styles.formGroup}>
@@ -112,7 +133,7 @@ export function RegisterForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && !emailError && <div className={styles.error}>{error}</div>}
       {validationError && <div className={styles.error}>{validationError}</div>}
 
       <button type="submit" disabled={isLoading}>

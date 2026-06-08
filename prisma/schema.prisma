@@ -29,7 +29,8 @@ model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   password  String   // hashed password
-  name      String?
+  firstName String?
+  lastName  String?
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -149,6 +150,24 @@ model TradeLog {
   @@index([giverId])
   @@index([receiverId])
   @@index([createdAt])
+}
+
+// Custom cards created by admin (stored in DB, not in static TS files)
+model CustomCard {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  rarity       String   // COMMUNE, RARE, LEGENDAIRE
+  number       Int
+  collectionSlug String // e.g. "s25-26"
+  imageUrl     String?
+  category     String   @default("Custom")
+  firstName    String?
+  lastName     String?
+  role         String   @default("joueur")
+  team         String   @default("ECC")
+  photo        String   @default("/logo-club.png")
+  createdAt    DateTime @default(now())
+  createdBy    String   @db.ObjectId
 }
 
 // Web Push subscriptions

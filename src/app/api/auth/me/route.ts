@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Missing or invalid token' },
+        { error: 'Token manquant ou invalide' },
         { status: 401 }
       );
     }
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     if (!decoded) {
       return NextResponse.json(
-        { error: 'Invalid token' },
+        { error: 'Token invalide' },
         { status: 401 }
       );
     }
@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         avatar: true,
         role: true,
         createdAt: true,
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Utilisateur introuvable' },
         { status: 404 }
       );
     }
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get user error:', error);
     return NextResponse.json(
-      { error: 'Failed to get user' },
+      { error: 'Erreur lors de la récupération du profil' },
       { status: 500 }
     );
   }

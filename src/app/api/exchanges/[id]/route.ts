@@ -73,7 +73,8 @@ export async function PUT(
           select: {
             id: true,
             email: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             avatar: true,
           },
         },
@@ -81,7 +82,8 @@ export async function PUT(
           select: {
             id: true,
             email: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             avatar: true,
           },
         },

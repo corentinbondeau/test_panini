@@ -7,42 +7,38 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, firstName, lastName } = body;
 
-    // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email et mot de passe requis' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'Cette adresse email est déjà utilisée.' },
         { status: 409 }
       );
     }
 
-    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        name: name || email.split('@')[0],
+        firstName: firstName || null,
+        lastName: lastName || null,
         role: 'member',
       },
     });
 
-    // Create empty collection for default season
     const defaultCollection = await prisma.collection.findUnique({
       where: { slug: "s25-26" },
     });
@@ -56,16 +52,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate token
     const token = generateToken(user.id);
 
     return NextResponse.json(
       {
-        message: 'User created successfully',
+        message: 'Inscription réussie',
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           avatar: user.avatar,
           role: user.role,
         },
@@ -76,7 +72,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Register error:', error);
     return NextResponse.json(
-      { error: 'Failed to register user' },
+      { error: "Erreur lors de l'inscription" },
       { status: 500 }
     );
   }

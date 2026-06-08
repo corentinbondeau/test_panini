@@ -122,6 +122,16 @@
   font-size: 0.9rem;
 }
 
+.fieldError {
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.25);
+  border-radius: 6px;
+  color: #ff7070;
+  font-size: 0.8rem;
+}
+
 .form button {
   width: 100%;
   padding: 0.7rem;
