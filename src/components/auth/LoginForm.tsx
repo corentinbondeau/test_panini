@@ -11,31 +11,45 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error } = useAuthStore();
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError('');
+    setPasswordError('');
+
     try {
       await login(email, password);
       onSuccess?.();
-    } catch {
-      // Error is handled by the store
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('Aucun compte')) {
+        setEmailError(msg);
+      } else if (msg.includes('incorrect')) {
+        setPasswordError(msg);
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <h2>Connexion</h2>
-      
+
       <div className={styles.formGroup}>
         <label htmlFor="email">Email</label>
         <input
           id="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (emailError) setEmailError('');
+          }}
           disabled={isLoading}
           required
         />
+        {emailError && <div className={styles.fieldError}>{emailError}</div>}
       </div>
 
       <div className={styles.formGroup}>
@@ -45,7 +59,10 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError('');
+            }}
             disabled={isLoading}
             required
           />
@@ -64,7 +81,7 @@ export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && !emailError && !passwordError && <div className={styles.error}>{error}</div>}
 
       <button type="submit" disabled={isLoading}>
         {isLoading ? 'Connexion en cours...' : 'Se connecter'}

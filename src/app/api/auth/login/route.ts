@@ -5,10 +5,9 @@ import { generateToken, verifyPassword } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-  // 1. Vérification immédiate des variables d'environnement
   if (!process.env.JWT_SECRET || !process.env.DATABASE_URL) {
     console.error("Missing critical environment variables");
-    return NextResponse.json({ error: "Configuration error" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur de configuration serveur" }, { status: 500 });
   }
 
   try {
@@ -16,34 +15,46 @@ export async function POST(request: NextRequest) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 });
     }
 
-    // On s'assure que prisma est bien initialisé
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Aucun compte ne correspond à cette adresse email.' },
+        { status: 401 }
+      );
     }
 
     const isPasswordValid = await verifyPassword(password, user.password);
 
     if (!isPasswordValid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Le mot de passe est incorrect.' },
+        { status: 401 }
+      );
     }
 
     const token = generateToken(user.id);
 
     return NextResponse.json({
-        message: 'Login successful',
-        user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role },
-        token,
-      }, { status: 200 });
-      
+      message: 'Connexion réussie',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        role: user.role,
+      },
+      token,
+    }, { status: 200 });
+
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
