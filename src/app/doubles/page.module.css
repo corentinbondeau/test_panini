@@ -2,6 +2,207 @@
   color: #f7d76d;
 }
 
+/* --- Recycling Section --- */
+
+.recycleSection {
+  margin: 16px 0;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0d274e 0%, #133566 100%);
+  border: 1px solid #1f4f91;
+}
+
+.recycleTitle {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  color: var(--club-yellow-500);
+}
+
+.recycleDesc {
+  margin: 0 0 16px;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.recycleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .recycleGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recycleCard {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(11, 31, 63, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  gap: 10px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.recycleCardReady {
+  border-color: var(--club-yellow-500);
+  box-shadow: 0 0 12px rgba(243, 198, 35, 0.1);
+}
+
+.recycleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recycleRatio {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.recycleCount {
+  font-size: 0.9rem;
+}
+
+.recycleAvailable {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--club-yellow-500);
+}
+
+.recycleNeeded {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.recycleBar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.recycleBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--club-yellow-500);
+  transition: width 0.3s ease;
+}
+
+.recycleBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-family: inherit;
+}
+
+.recycleBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.recycleBtn:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+.recycleError {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.recycleResult {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(11, 31, 63, 0.8);
+  border: 1px solid var(--club-yellow-500);
+  text-align: center;
+  display: grid;
+  gap: 12px;
+}
+
+.recycleResultTitle {
+  margin: 0;
+  color: var(--club-yellow-500);
+  font-size: 1.1rem;
+}
+
+.recycleResultCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.recycleResultImg {
+  border-radius: 8px;
+  border: 2px solid var(--club-blue-700);
+  object-fit: cover;
+}
+
+.recycleResultInfo {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+
+.recycleResultName {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.recycleDoubleBadge {
+  background: var(--club-yellow-400);
+  color: var(--club-blue-950);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+  width: fit-content;
+}
+
+.recycleCloseBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-weight: 700;
+  background: var(--club-blue-700);
+  color: white;
+  cursor: pointer;
+  font-family: inherit;
+  justify-self: center;
+  transition: background 0.2s;
+}
+
+.recycleCloseBtn:hover {
+  background: var(--club-blue-300);
+  color: var(--club-blue-950);
+}
+
+/* --- Exchange Banner --- */
+
 .exchangeBanner {
   margin: 12px 0 18px;
   padding: 16px;
