@@ -32,7 +32,10 @@ export function Header() {
           <Link href="/doubles" onClick={() => setMenuOpen(false)}>Mes doubles</Link>
           <Link href="/echange" onClick={() => setMenuOpen(false)}>Échanges</Link>
           {isInitialized && user?.role === 'admin' && (
-            <Link href="/admin/stats" onClick={() => setMenuOpen(false)}>Administration</Link>
+            <>
+              <Link href="/admin/stats" onClick={() => setMenuOpen(false)}>Statistiques</Link>
+              <Link href="/admin/add-card" onClick={() => setMenuOpen(false)}>Ajouter une carte</Link>
+            </>
           )}
           {isInitialized && (
             user ? (

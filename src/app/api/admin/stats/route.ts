@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const totalBoostersOpened = await prisma.boosterLog.count();
     const totalTrades = await prisma.tradeLog.count();
 
-    const userIds = await prisma.user.findMany({ select: { id: true, name: true, email: true } });
+    const userIds = await prisma.user.findMany({ select: { id: true, firstName: true, lastName: true, email: true } });
     const userMap = new Map(userIds.map(u => [u.id, u]));
 
     const allUCs = await prisma.userCollection.findMany({
@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
       const u = userMap.get(uc.userId);
       if (u) {
         if (!userUniqueCounts[uc.userId]) {
-          userUniqueCounts[uc.userId] = { name: u.name || u.email, unique: 0, total: 0 };
+          const displayName = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email;
+          userUniqueCounts[uc.userId] = { name: displayName, unique: 0, total: 0 };
         }
         userUniqueCounts[uc.userId].unique += unique;
         userUniqueCounts[uc.userId].total += total;
