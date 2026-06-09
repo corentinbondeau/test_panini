@@ -9,6 +9,8 @@ import { useAuthStore } from "@/store/authStore";
 import { COLLECTIONS, CardRarity } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
 import { RarityBadge } from "@/components/cards/RarityBadge";
+import { playRipSound, playLegendaryJingle, playRareChime, vibrate } from '@/lib/audio';
+import { fireConfetti } from '@/lib/confetti';
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -162,9 +164,31 @@ export default function BoosterPage() {
 
   const handleNextCard = () => {
     if (revealedCount < PACK_SIZE) {
+      const next = draws[revealedCount];
+      if (next) {
+        // Play sound + effects based on rarity
+        if (next.card.rarity === 'LEGENDAIRE') {
+          playLegendaryJingle();
+          vibrate([100, 50, 100, 50, 200]);
+          fireConfetti('LEGENDAIRE');
+        } else if (next.card.rarity === 'RARE') {
+          playRareChime();
+          vibrate(50);
+          fireConfetti('RARE');
+        } else {
+          vibrate(20);
+        }
+      }
       setRevealedCount((prev) => prev + 1);
     }
   };
+
+  // Play rip sound at start of reveal phase
+  useEffect(() => {
+    if (phase === 'shake') {
+      playRipSound();
+    }
+  }, [phase]);
 
   const handleReset = () => {
     setDraws([]);
@@ -243,11 +267,12 @@ export default function BoosterPage() {
         <div className={styles.errorMsg}>{error}</div>
       )}
 
-      {/* Pack animation */}
+      {/* 3D Pack with drag-to-tear */}
       {(phase === "idle" || phase === "loading" || phase === "shake" || phase === "flash") && (
         <div className={styles.packArea}>
           <motion.div
-            className={`${styles.pack} ${(!hasCards || limitReached) && phase === "idle" ? styles.packDisabled : ""}`}
+            className={`${styles.pack3d} ${(!hasCards || limitReached) && phase === "idle" ? styles.packDisabled : ""}`}
+            style={{ perspective: 1000 }}
             animate={
               phase === "loading"
                 ? { scale: [1, 1.05, 1], opacity: [1, 0.7, 1] }
@@ -267,9 +292,34 @@ export default function BoosterPage() {
                 : {}
             }
             onClick={phase === "idle" && hasCards && !limitReached ? handleOpen : undefined}
+            // 3D tilt on hover (idle only)
+            whileHover={phase === "idle" ? { rotateX: 5, rotateY: 10, scale: 1.03 } : undefined}
+            // Drag down gesture to tear open
+            drag={phase === "idle" ? "y" : false}
+            dragConstraints={{ top: -50, bottom: 0 }}
+            dragElastic={0.3}
+            onDragEnd={(_, info) => {
+              if (info.offset.y < -30 && hasCards && !limitReached) {
+                handleOpen();
+              }
+            }}
           >
-            <div className={styles.packInner}>
-              <img src={packImage} alt="" className={styles.packBackImg} />
+            <div className={styles.pack3dInner}>
+              <motion.img
+                src={packImage}
+                alt=""
+                className={styles.packBackImg}
+                style={{ backfaceVisibility: 'hidden' }}
+              />
+              {phase === "idle" && (
+                <motion.div
+                  className={styles.dragHint}
+                  animate={{ y: [0, 6, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <span className={styles.dragHintText}>Tirer vers le bas ↓</span>
+                </motion.div>
+              )}
             </div>
           </motion.div>
           {isMassOpen && phase === "loading" && (
@@ -281,9 +331,9 @@ export default function BoosterPage() {
           {!hasCards && phase === "idle" && (
             <p className={styles.emptyWarning}>Cette collection ne contient pas encore de cartes.</p>
           )}
-          {phase === "loading" && !isMassOpen && <div className={styles.packGlow} />}
-          {phase === "shake" && <div className={styles.packGlow} />}
-          {phase === "flash" && <div className={styles.flashOverlay} />}
+          {!isMassOpen && phase === "loading" && <div className={styles.packGlow3d} />}
+          {!isMassOpen && phase === "shake" && <div className={styles.packGlow3d} />}
+          {!isMassOpen && phase === "flash" && <div className={styles.flashOverlay} />}
         </div>
       )}
 
