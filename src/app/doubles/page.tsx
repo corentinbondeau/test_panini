@@ -13,8 +13,8 @@ import styles from "./page.module.css";
 
 const RECYCLE_RATIOS: Record<string, { required: number; label: string }> = {
   COMMUNE: { required: 5, label: "5 Communes" },
-  RARE: { required: 3, label: "3 Rares" },
-  LEGENDAIRE: { required: 1, label: "1 Légendaire" },
+  RARE: { required: 10, label: "10 Rares" },
+  LEGENDAIRE: { required: 25, label: "25 Légendaires" },
 };
 
 export default function DoublesPage() {

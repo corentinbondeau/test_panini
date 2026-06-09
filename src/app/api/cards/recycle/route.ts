@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 
 const RECYCLE_RATIOS: Record<string, number> = {
   COMMUNE: 5,
-  RARE: 3,
-  LEGENDAIRE: 1,
+  RARE: 10,
+  LEGENDAIRE: 25,
 };
 
 export async function POST(request: NextRequest) {
