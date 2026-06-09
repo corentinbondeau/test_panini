@@ -81,7 +81,16 @@ export async function POST(request: NextRequest) {
 
     // Check for active Happy Hour event
     const activeEvent = await getActiveEvent('happy_hour');
-    const bonusChance = activeEvent?.modification?.boosterBonusChance ?? 0;
+    let bonusChance = activeEvent?.modification?.boosterBonusChance ?? 0;
+
+    // Check for reserved charm on user and consume it for this draw
+    const userRecord = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (userRecord?.charmReserved && (userRecord.charms ?? 0) > 0) {
+      // apply +5% bonus to RARE and LEGENDAIRE
+      bonusChance += 0.05;
+      // consume one charm and clear reservation
+      await prisma.user.update({ where: { id: decoded.userId }, data: { charms: { decrement: 1 }, charmReserved: false } });
+    }
 
     const cardsByRarity: Record<string, typeof cards> = {};
     for (const card of cards) {
