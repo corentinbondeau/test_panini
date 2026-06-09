@@ -123,6 +123,11 @@ export async function POST(request: NextRequest) {
     });
     await updateQuestProgress(decoded.userId, 'recycle_count', RECYCLE_RATIOS[rarity]);
 
+    // Economy: reward tokens and dust (poussiere d'etoile)
+    const tokensReward = RECYCLE_RATIOS[rarity] * 2; // example: 5 -> 10 tokens
+    const dustReward = Math.max(1, Math.round(RECYCLE_RATIOS[rarity] / 5));
+    await prisma.user.update({ where: { id: decoded.userId }, data: { tokens: { increment: tokensReward }, dust: { increment: dustReward } } });
+
     const newBadges = await checkAndUnlockBadges(decoded.userId);
 
     return NextResponse.json({
@@ -143,6 +148,7 @@ export async function POST(request: NextRequest) {
       quantityAfter: previous + 1,
       quantities: currentCards,
       newBadges,
+      rewards: { tokens: tokensReward, dust: dustReward }
     });
   } catch (error) {
     console.error('Recycle error:', error);
