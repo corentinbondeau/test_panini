@@ -80,6 +80,47 @@ model User {
   marketplaceListings MarketplaceListing[]
   clanMemberships   ClanMember[]
   clanRequests      ClanRequest[]
+
+  // New economy & customization fields
+  // Inventory stored as JSON: { charms: number, dust: number, ... }
+  inventory        Json     @default("{\"charms\":0,\"dust\":0}")
+
+  // Showcase: array of up to 5 pinned card IDs
+  showcase         Json     @default("[]")
+
+  // Card backs (cosmetics)
+  unlockedCardBacks Json    @default("[]")
+  activeCardBack    String?
+  // Separate counters for charms (amulets) and dust
+  charms            Int      @default(0)
+  charmActiveUntil  DateTime?
+  dust              Int      @default(0)
+  charmReserved     Boolean  @default(false)
+}
+
+// Pool of quest templates used to generate daily quests
+model QuestPool {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  title     String
+  description String
+  target    Int
+  // a short type code e.g. OPEN_BOOSTER, RECYCLE_CARD, OBTAIN_RARITY
+  type      String
+  params    Json     @default("{}")
+  createdAt DateTime @default(now())
+}
+
+// History of card market values
+model CardValueHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cardId    String
+  date      DateTime @default(now())
+  avgPrice  Int
+  createdAt DateTime @default(now())
+
+  @@index([cardId])
+  @@index([date])
 }
 
 // User's card collection per season
