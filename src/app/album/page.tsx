@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { CardFlip } from "@/components/cards/CardFlip";
+import { AlbumBook } from "@/components/AlbumBook";
 import { CardModal } from "@/components/cards/CardModal";
 import { useCollectionStore, useCollectionSelectors } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
@@ -14,7 +14,6 @@ import styles from "./page.module.css";
 
 const ALL_OPTION = { id: ALL_COLLECTIONS_ID, name: "Toutes les collections" };
 const TAB_OPTIONS = [ALL_OPTION, ...COLLECTIONS];
-const CARDS_PER_PAGE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function AlbumPage() {
@@ -33,7 +32,6 @@ export default function AlbumPage() {
   const [onlyOwned, setOnlyOwned] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [collectionLoading, setCollectionLoading] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(CARDS_PER_PAGE);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
@@ -72,7 +70,6 @@ export default function AlbumPage() {
     setCategoryFilter("");
     setRarityFilter("");
     setSelectedCard(null);
-    setVisibleCount(CARDS_PER_PAGE);
   };
 
   const collectionCards = useMemo(
@@ -119,18 +116,7 @@ export default function AlbumPage() {
     return cards;
   }, [collectionCards, debouncedSearch, categoryFilter, rarityFilter, onlyOwned, quantities]);
 
-  const visibleCards = useMemo(
-    () => filteredCards.slice(0, visibleCount),
-    [filteredCards, visibleCount]
-  );
-
-  const hasMore = filteredCards.length > visibleCount;
-
   const hasActiveFilter = debouncedSearch.trim() !== "" || categoryFilter !== "" || rarityFilter !== "";
-
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + CARDS_PER_PAGE);
-  };
 
   const handleReset = () => {
     setSearch("");
@@ -283,22 +269,12 @@ export default function AlbumPage() {
           Aucun joueur ne correspond a votre recherche.
         </p>
       ) : (
-        <>
-          <div className={styles.grid}>
-            {visibleCards.map((card) => (
-              <div key={card.id}>
-                <CardFlip card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} dateObtained={cardDates[card.id] || null} />
-              </div>
-            ))}
-          </div>
-          {hasMore && (
-            <div className={styles.showMoreWrapper}>
-              <button onClick={handleShowMore} className={styles.showMoreBtn}>
-                Afficher plus ({filteredCards.length - visibleCount} restantes)
-              </button>
-            </div>
-          )}
-        </>
+        <AlbumBook
+          cards={filteredCards}
+          quantities={quantities}
+          shinyCards={shinyCards}
+          cardDates={cardDates}
+        />
       )}
 
       <AnimatePresence>
