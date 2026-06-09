@@ -6,8 +6,15 @@ import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Package } from 'lucide-react';
 import styles from './page.module.css';
+
+interface BoosterHistoryEntry {
+  id: string;
+  createdAt: string;
+  rarityCounts: Record<string, number>;
+  cards: Array<{ id: string; firstName: string; lastName: string; photo: string; rarity: string }>;
+}
 
 export default function ComptePage() {
   const { user, isLoading, updateProfile, checkAuth, logout, token } = useAuthStore();
@@ -40,6 +47,10 @@ export default function ComptePage() {
   const [isPublicAlbum, setIsPublicAlbum] = useState(false);
   const [publicAlbumLoading, setPublicAlbumLoading] = useState(false);
 
+  // Booster history state
+  const [boosterHistory, setBoosterHistory] = useState<BoosterHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
@@ -59,6 +70,19 @@ export default function ComptePage() {
       return () => clearTimeout(toastTimer.current);
     }
   }, [showToast]);
+
+  // Fetch booster history
+  useEffect(() => {
+    if (!token) return;
+    setHistoryLoading(true);
+    fetch('/api/booster/history', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setBoosterHistory(data.logs || []))
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false));
+  }, [token]);
 
   // Check push subscription status on mount + browser permission
   useEffect(() => {
@@ -413,6 +437,45 @@ export default function ComptePage() {
             <span className={styles.toggleKnob} />
           </button>
         </div>
+      </section>
+
+      {/* Booster History */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Historique des boosters</h2>
+        {historyLoading ? (
+          <p className={styles.loading}>Chargement...</p>
+        ) : boosterHistory.length === 0 ? (
+          <p className={styles.pickerEmpty}>Aucun booster ouvert pour le moment.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {boosterHistory.slice(0, 10).map((entry) => (
+              <div key={entry.id} className={styles.historyCard}>
+                <div className={styles.historyHeader}>
+                  <Package size={16} />
+                  <span className={styles.historyDate}>
+                    {new Date(entry.createdAt).toLocaleDateString('fr-FR', {
+                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+                <div className={styles.historyCardsRow}>
+                  {entry.cards.map((card) => (
+                    <div key={card.id} className={styles.historyCardItem}>
+                      <Image src={card.photo} alt={card.firstName} width={50} height={70}
+                        style={{ width: '100%', height: 'auto', borderRadius: '4px' }} />
+                      <span className={styles.historyCardName}>{card.firstName} {card.lastName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {boosterHistory.length > 10 && (
+              <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem', textAlign: 'center' }}>
+                + {boosterHistory.length - 10} ouverture(s) plus ancienne(s)
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Public Album */}

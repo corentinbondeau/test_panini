@@ -293,6 +293,51 @@
   transform: translateX(22px);
 }
 
+/* Booster history */
+
+.historyCard {
+  background: linear-gradient(180deg, var(--club-blue-800), var(--club-blue-900));
+  border: 1px solid var(--club-blue-700);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--club-yellow-500);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.historyDate {
+  color: var(--text-soft);
+}
+
+.historyCardsRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.historyCardItem {
+  flex-shrink: 0;
+  width: 60px;
+  text-align: center;
+}
+
+.historyCardName {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
 /* Logout */
 
 .logoutSection {
