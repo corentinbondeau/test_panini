@@ -1,0 +1,231 @@
+.note {
+  color: var(--text-soft);
+  margin-bottom: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-soft);
+}
+
+.protected {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.loginLink {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.error {
+  padding: 10px 14px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  margin-bottom: 12px;
+}
+
+.success {
+  padding: 10px 14px;
+  background: rgba(107, 255, 107, 0.1);
+  border: 1px solid rgba(107, 255, 107, 0.3);
+  border-radius: 8px;
+  color: #6bff6b;
+  margin-bottom: 12px;
+}
+
+.actions {
+  margin-bottom: 16px;
+}
+
+.sellBtn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--club-yellow-500);
+  background: transparent;
+  color: var(--club-yellow-500);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.sellBtn:hover {
+  background: rgba(243, 198, 35, 0.1);
+}
+
+.sellForm {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(11, 31, 63, 0.6);
+  border: 1px solid var(--club-blue-700);
+  display: grid;
+  gap: 12px;
+}
+
+.sellForm h3 {
+  margin: 0;
+  color: var(--club-yellow-500);
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.select,
+.input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--club-blue-700);
+  background: var(--club-blue-900);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.submitBtn {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty {
+  color: var(--text-soft);
+  text-align: center;
+  padding: 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(11, 31, 63, 0.6);
+  border: 1px solid var(--club-blue-700);
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.cardImageWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.cardImage {
+  border-radius: 8px;
+  border: 2px solid var(--club-blue-700);
+  object-fit: cover;
+}
+
+.cardInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.cardName {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.rarityBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.COMMUNE {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-soft);
+}
+
+.RARE {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.LEGENDAIRE {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--club-yellow-500);
+}
+
+.seller {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.buyBtn {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.buyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buyBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
