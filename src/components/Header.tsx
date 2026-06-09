@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import { ThemeToggle } from './ThemeToggle';
+import { TokenBalance } from './TokenBalance';
 import styles from './header.module.css';
 
 export function Header() {

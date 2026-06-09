@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { getUserQuests } from '@/lib/quests';
-import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const collectionSlug = searchParams.get('collectionId') || DEFAULT_COLLECTION_ID;
+    const collectionSlug = searchParams.get('collectionId') || undefined;
 
     const quests = await getUserQuests(decoded.userId, collectionSlug);
 
