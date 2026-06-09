@@ -46,3 +46,10 @@ body {
 a {
   color: inherit;
 }
+
+/* Avatar border cosmetic classes */
+.avatar-ring-basic { }
+.avatar-ring-silver { border-radius: 9999px; }
+.avatar-ring-gold { border-radius: 9999px; }
+.avatar-ring-neon { border-radius: 9999px; }
+

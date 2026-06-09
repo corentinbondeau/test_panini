@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import Image from 'next/image';
+import AvatarBorder from '@/components/AvatarBorder';
 import Link from 'next/link';
 import { Eye, EyeOff, Package } from 'lucide-react';
 import styles from './page.module.css';
@@ -274,23 +275,28 @@ export default function ComptePage() {
   }
 
   return (
-    <div className={styles.page}>
+    <main className="max-w-6xl mx-auto px-4 py-8 text-base">
+      <div className={styles.page}>
       <h1 className={styles.title}>Mon compte</h1>
 
       {/* Avatar */}
       <div className={styles.avatarSection}>
-        <div className={styles.avatarCircle}>
-          {user.avatar ? (
-            <img src={user.avatar} alt="" className={styles.avatarImg} />
-          ) : (
-            <div className={styles.avatarLetter}>
-              {(user.firstName?.charAt(0) || user.email?.charAt(0) || '?').toUpperCase()}
-            </div>
-          )}
+        <AvatarBorder level={user.totalCardsObtained ?? 0} size={96}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {user.avatar ? (
+              <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ fontSize: 28, fontWeight: 700 }}>
+                {(user.firstName?.charAt(0) || user.email?.charAt(0) || '?').toUpperCase()}
+              </div>
+            )}
+          </div>
+        </AvatarBorder>
+        <div style={{ marginLeft: 12 }}>
+          <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} className={styles.avatarBtn}>
+            {showAvatarPicker ? 'Fermer' : 'Choisir une carte comme avatar'}
+          </button>
         </div>
-        <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} className={styles.avatarBtn}>
-          {showAvatarPicker ? 'Fermer' : 'Choisir une carte comme avatar'}
-        </button>
       </div>
 
       {/* Avatar picker */}
@@ -317,6 +323,91 @@ export default function ComptePage() {
           )}
         </div>
       )}
+
+      {/* Showcase (vitrine) */}
+      <section className={styles.section} style={{ marginTop: '1rem' }}>
+        <h2 className={styles.sectionTitle}>Vitrine (5 emplacements)</h2>
+        <p className={styles.toggleDesc}>Epinglez jusqu'à 5 cartes visibles par tous.</p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+          {Array.from({ length: 5 }).map((_, idx) => {
+            const cardId = (user?.showcase && (user.showcase as string[])[idx]) || null;
+            const cardMeta = CLUB_CARDS.find((c) => c.id === cardId);
+            return (
+              <div key={idx} style={{ width: 80, textAlign: 'center' }}>
+                {cardMeta ? (
+                  <div style={{ cursor: 'pointer' }}>
+                    <img src={cardMeta.photo} alt="" style={{ width: 80, height: 60, borderRadius: 6 }} />
+                    <div style={{ fontSize: '0.8rem' }}>{cardMeta.firstName}</div>
+                    <button
+                      onClick={async () => {
+                        // remove this card from showcase
+                        const next = (user.showcase as string[]).filter((id: string) => id !== cardMeta.id);
+                        await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ showcase: next }) });
+                        window.location.reload();
+                      }}
+                      className={styles.submitBtn}
+                    >Retirer</button>
+                  </div>
+                ) : (
+                  <div style={{ border: '1px dashed var(--border)', borderRadius: 6, padding: 8 }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-soft)' }}>Vide</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Quick pin from owned cards */}
+        <div style={{ marginTop: 12 }}>
+          <p className={styles.pickerLabel}>Épingler depuis vos cartes :</p>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingTop: 8 }}>
+            {ownedCards.slice(0, 30).map((c) => (
+              <button
+                key={c.id}
+                onClick={async () => {
+                  const next = Array.from(new Set([...(user.showcase || []), c.id])).slice(0, 5);
+                  await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ showcase: next }) });
+                  window.location.reload();
+                }}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+              >
+                <img src={c.photo} alt="" style={{ width: 60, height: 44, borderRadius: 6 }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Card backs */}
+      <section className={styles.section} style={{ marginTop: '1rem' }}>
+        <h2 className={styles.sectionTitle}>Dos de cartes</h2>
+        <p className={styles.toggleDesc}>Choisissez un design pour l'animation d'ouverture.</p>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          {['default', 'retro', 'neon', 'gold'].map((back) => {
+            const unlocked = (user.unlockedCardBacks || []).includes(back);
+            const active = user.activeCardBack === back;
+            return (
+              <div key={back} style={{ textAlign: 'center' }}>
+                <div style={{ width: 80, height: 60, borderRadius: 6, background: active ? 'linear-gradient(90deg,#f6e05e,#f97316)' : '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>{back}</div>
+                <div style={{ marginTop: 6 }}>
+                  {unlocked ? (
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ activeCardBack: back }) });
+                        window.location.reload();
+                      }}
+                      className={styles.submitBtn}
+                    >{active ? 'Actif' : 'Appliquer'}</button>
+                  ) : (
+                    <button disabled className={styles.submitBtn} style={{ opacity: 0.6 }}>Verrouillé</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Edit form */}
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -532,7 +623,8 @@ export default function ComptePage() {
           {toastMessage}
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 }
 
