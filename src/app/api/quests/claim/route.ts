@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { claimQuestReward } from '@/lib/quests';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
@@ -25,6 +26,15 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await claimQuestReward(decoded.userId, questId);
+
+    // Add weekly XP to clan for quest completion
+    const clanMember = await prisma.clanMember.findFirst({ where: { userId: decoded.userId } });
+    if (clanMember) {
+      await prisma.clan.update({
+        where: { id: clanMember.clanId },
+        data: { weeklyXP: { increment: 10 } },
+      });
+    }
 
     return NextResponse.json(result);
   } catch (error) {

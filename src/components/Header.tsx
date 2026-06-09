@@ -35,6 +35,7 @@ export function Header() {
           <Link href="/echange" onClick={() => setMenuOpen(false)}>Échanges</Link>
           <Link href="/marketplace" onClick={() => setMenuOpen(false)}>Marché</Link>
           <Link href="/leaderboard" onClick={() => setMenuOpen(false)}>Classement</Link>
+          <Link href="/clan" onClick={() => setMenuOpen(false)}>Clans</Link>
           {isInitialized && user?.role === 'admin' && (
             <>
               <Link href="/admin/stats" onClick={() => setMenuOpen(false)}>Statistiques</Link>

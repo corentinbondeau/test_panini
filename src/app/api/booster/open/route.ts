@@ -214,6 +214,15 @@ export async function POST(request: NextRequest) {
     // Check for new badges
     const newBadges = await checkAndUnlockBadges(decoded.userId);
 
+    // Add weekly XP to clan
+    const clanMember = await prisma.clanMember.findFirst({ where: { userId: decoded.userId } });
+    if (clanMember) {
+      await prisma.clan.update({
+        where: { id: clanMember.clanId },
+        data: { weeklyXP: { increment: 5 } },
+      });
+    }
+
     return NextResponse.json({
       cards: draws,
       boostersRemainingToday: MAX_BOOSTERS_PER_DAY - boostersOpenedToday,
