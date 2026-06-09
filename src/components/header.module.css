@@ -101,6 +101,19 @@
   background: rgba(243, 198, 35, 0.1);
 }
 
+.tokenBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .burger {
     display: flex;

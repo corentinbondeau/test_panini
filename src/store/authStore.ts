@@ -10,6 +10,7 @@ export interface User {
   role?: string;
   createdAt?: string;
   isPublicAlbum?: boolean;
+  tokens?: number;
 }
 
 interface AuthStore {
@@ -17,6 +18,7 @@ interface AuthStore {
   token: string | null;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean;
 
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
@@ -39,6 +41,7 @@ export const useAuthStore = create<AuthStore>()(
       token: null,
       isLoading: false,
       error: null,
+      isInitialized: false,
 
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),
@@ -111,11 +114,11 @@ export const useAuthStore = create<AuthStore>()(
         const state = useAuthStore.getState();
         const token = state.token;
         if (!token) {
-          set({ user: null });
+          set({ user: null, isInitialized: true });
           return;
         }
 
-        set({ isLoading: true });
+        set({ isLoading: true, isInitialized: true });
         try {
           const response = await fetch('/api/auth/me', {
             headers: { Authorization: `Bearer ${token}` },

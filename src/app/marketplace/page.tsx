@@ -208,7 +208,7 @@ export default function MarketplacePage() {
                     </span>
                     <p className={styles.price}>{listing.price} tokens</p>
                     <p className={styles.seller}>
-                      Vendu par {listing.seller.firstName || 'Inconnu'}
+                      Vendu par {listing.seller.firstName || ''} {listing.seller.lastName || ''}
                     </p>
                   </div>
                   <button

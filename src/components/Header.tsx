@@ -35,6 +35,7 @@ export function Header() {
           <Link href="/echange" onClick={() => setMenuOpen(false)}>Échanges</Link>
           <Link href="/marketplace" onClick={() => setMenuOpen(false)}>Marché</Link>
           <Link href="/leaderboard" onClick={() => setMenuOpen(false)}>Classement</Link>
+          <Link href="/quests" onClick={() => setMenuOpen(false)}>Quêtes</Link>
           <Link href="/clan" onClick={() => setMenuOpen(false)}>Clans</Link>
           {isInitialized && user?.role === 'admin' && (
             <>
@@ -42,6 +43,7 @@ export function Header() {
               <Link href="/admin/add-card" onClick={() => setMenuOpen(false)}>Ajouter une carte</Link>
             </>
           )}
+          <TokenBalance />
           {isInitialized && (
             user ? (
               <Link href="/compte" className={styles.authLink} onClick={() => setMenuOpen(false)}>
