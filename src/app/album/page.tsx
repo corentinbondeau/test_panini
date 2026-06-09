@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { CardTile } from "@/components/cards/CardTile";
+import { CardFlip } from "@/components/cards/CardFlip";
 import { CardModal } from "@/components/cards/CardModal";
 import { useCollectionStore, useCollectionSelectors } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
@@ -23,6 +23,7 @@ export default function AlbumPage() {
   const storeCollectionId = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
   const shinyCards = useCollectionStore((s) => s.shinyCards);
+  const cardDates = useCollectionStore((s) => s.cardDates);
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [search, setSearch] = useState("");
@@ -286,7 +287,7 @@ export default function AlbumPage() {
           <div className={styles.grid}>
             {visibleCards.map((card) => (
               <div key={card.id}>
-                <CardTile card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} onClick={() => setSelectedCard(card)} />
+                <CardFlip card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} dateObtained={cardDates[card.id] || null} />
               </div>
             ))}
           </div>

@@ -88,6 +88,8 @@ model UserCollection {
   cards      Json       @default("{}")
   // Shiny/fused cards: [cardId, ...]
   shinyCards Json       @default("[]")
+  // Card acquisition dates: { cardId: ISO-date-string, ... }
+  cardDates  Json       @default("{}")
   updatedAt  DateTime   @updatedAt
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)

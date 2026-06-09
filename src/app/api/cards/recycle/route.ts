@@ -99,9 +99,13 @@ export async function POST(request: NextRequest) {
     currentCards[randomCard.id] = previous + 1;
 
     // Save in a single update
+    const currentCardDates = (userCollection.cardDates as Record<string, string>) || {};
+    if (!currentCardDates[randomCard.id]) {
+      currentCardDates[randomCard.id] = new Date().toISOString();
+    }
     await prisma.userCollection.update({
       where: { id: userCollection.id },
-      data: { cards: currentCards },
+      data: { cards: currentCards, cardDates: currentCardDates },
     });
 
     // Track stats and quest progress

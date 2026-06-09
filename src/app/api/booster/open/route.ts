@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const currentCards = (userCollection.cards as Record<string, number>) || {};
+    const currentCardDates = (userCollection.cardDates as Record<string, string>) || {};
 
     const usedPlayerKeys = new Set<string>();
 
@@ -141,6 +142,9 @@ export async function POST(request: NextRequest) {
       const previous = currentCards[card.id] ?? 0;
       const next = previous + 1;
       currentCards[card.id] = next;
+      if (previous === 0) {
+        currentCardDates[card.id] = new Date().toISOString();
+      }
 
       draws.push({
         cardId: card.id,
@@ -164,7 +168,7 @@ export async function POST(request: NextRequest) {
 
     await prisma.userCollection.update({
       where: { id: userCollection.id },
-      data: { cards: currentCards },
+      data: { cards: currentCards, cardDates: currentCardDates },
     });
 
     // Log booster opening
