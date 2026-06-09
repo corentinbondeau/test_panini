@@ -3,6 +3,7 @@ import "./globals.css";
 import styles from "./layout.module.css";
 import { Header } from "@/components/Header";
 import NotificationBanner from "@/components/NotificationBanner";
+import { HappyHourBanner } from "@/components/HappyHourBanner";
 
 export const metadata: Metadata = {
   title: "ECC Panini - Collection",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className={styles.shell}>
           <Header />
+          <HappyHourBanner />
           <main className={styles.main}>{children}</main>
           <NotificationBanner />
         </div>

@@ -6,19 +6,25 @@ import { getCardsByCollection } from '@/data/clubCards';
 import { checkAndUpdateStreak } from '@/lib/streak';
 import { updateQuestProgress } from '@/lib/quests';
 import { checkAndUnlockBadges } from '@/lib/badges';
+import { getActiveEvent } from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
-const RARITY_WEIGHTS = [
-  { rarity: 'COMMUNE', weight: 75 },
-  { rarity: 'RARE', weight: 20 },
-  { rarity: 'LEGENDAIRE', weight: 5 },
-];
+const BASE_WEIGHTS = {
+  COMMUNE: 75,
+  RARE: 20,
+  LEGENDAIRE: 5,
+};
 
-function pickRarity(): string {
-  const totalWeight = RARITY_WEIGHTS.reduce((sum, r) => sum + r.weight, 0);
+function pickRarity(bonusChance: number = 0): string {
+  const weights = {
+    COMMUNE: BASE_WEIGHTS.COMMUNE,
+    RARE: BASE_WEIGHTS.RARE * (1 + bonusChance),
+    LEGENDAIRE: BASE_WEIGHTS.LEGENDAIRE * (1 + bonusChance),
+  };
+  const totalWeight = weights.COMMUNE + weights.RARE + weights.LEGENDAIRE;
   let roll = Math.random() * totalWeight;
-  for (const { rarity, weight } of RARITY_WEIGHTS) {
+  for (const [rarity, weight] of Object.entries(weights)) {
     roll -= weight;
     if (roll <= 0) return rarity;
   }
@@ -73,6 +79,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cette collection ne contient pas encore de cartes' }, { status: 400 });
     }
 
+    // Check for active Happy Hour event
+    const activeEvent = await getActiveEvent('happy_hour');
+    const bonusChance = activeEvent?.modification?.boosterBonusChance ?? 0;
+
     const cardsByRarity: Record<string, typeof cards> = {};
     for (const card of cards) {
       if (!cardsByRarity[card.rarity]) cardsByRarity[card.rarity] = [];
@@ -122,7 +132,7 @@ export async function POST(request: NextRequest) {
       let attempts = 0;
 
       while (!card && attempts < 30) {
-        const targetRarity = pickRarity();
+        const targetRarity = pickRarity(bonusChance);
         const rarityPool = cardsByRarity[targetRarity] ?? cards;
         const available = rarityPool.filter(
           (c) => !usedPlayerKeys.has(`${c.firstName}|${c.lastName}`)

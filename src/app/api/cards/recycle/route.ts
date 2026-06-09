@@ -5,6 +5,7 @@ import { getCardsByCollection } from '@/data/clubCards';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 import { updateQuestProgress } from '@/lib/quests';
 import { checkAndUnlockBadges } from '@/lib/badges';
+import { getActiveEvent } from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,9 +34,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'La rareté est requise' }, { status: 400 });
     }
 
-    const ratio = RECYCLE_RATIOS[rarity];
+    let ratio = RECYCLE_RATIOS[rarity];
     if (!ratio) {
       return NextResponse.json({ error: 'Rareté invalide' }, { status: 400 });
+    }
+
+    // Check for active Happy Hour event to reduce recycle cost
+    const activeEvent = await getActiveEvent('happy_hour');
+    if (activeEvent?.modification?.recycleCostReduction) {
+      const reduction = Math.min(activeEvent.modification.recycleCostReduction, 0.5);
+      ratio = Math.max(1, Math.round(ratio * (1 - reduction)));
     }
 
     const collectionSlug = collectionId || DEFAULT_COLLECTION_ID;
@@ -108,12 +116,12 @@ export async function POST(request: NextRequest) {
       data: { cards: currentCards, cardDates: currentCardDates },
     });
 
-    // Track stats and quest progress
+    // Track stats and quest progress (use original ratio for recycling count)
     await prisma.user.update({
       where: { id: decoded.userId },
-      data: { totalRecycles: { increment: ratio } },
+      data: { totalRecycles: { increment: RECYCLE_RATIOS[rarity] } },
     });
-    await updateQuestProgress(decoded.userId, 'recycle_count', ratio);
+    await updateQuestProgress(decoded.userId, 'recycle_count', RECYCLE_RATIOS[rarity]);
 
     const newBadges = await checkAndUnlockBadges(decoded.userId);
 
