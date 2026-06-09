@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Card, COLLECTIONS } from "@/data/cards";
 import { RarityBadge } from "./RarityBadge";
 import styles from "./CardModal.module.css";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const FALLBACK_IMG = "/logo-club.png";
 
@@ -38,6 +39,19 @@ export function CardModal({ card, quantity, onClose }: CardModalProps) {
 
   const seasonName = COLLECTIONS.find((c) => c.id === card?.collectionId)?.name || card?.collectionId || "";
   const hasRealPhoto = !!card?.imageUrl;
+  const [history, setHistory] = useState<Array<{ date: string; avgPrice: number }>>([]);
+
+  useEffect(() => {
+    if (!card) return;
+    fetch(`/api/cards/value/${card.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.ok && Array.isArray(data.data)) {
+          setHistory(data.data.map((d: any) => ({ date: new Date(d.date).toLocaleDateString(), avgPrice: d.avgPrice })));
+        }
+      })
+      .catch(() => {});
+  }, [card]);
 
   return (
     <motion.div
@@ -81,6 +95,18 @@ export function CardModal({ card, quantity, onClose }: CardModalProps) {
             {card && <RarityBadge rarity={card.rarity} size="lg" />}
           </div>
           {seasonName && <span className={styles.season}>{seasonName}</span>}
+          {history.length > 0 && (
+            <div style={{ width: '100%', height: 120, marginTop: 12 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={history}>
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="avgPrice" stroke="#82ca9d" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
           <span className={`${styles.status} ${isOwned ? styles.ownedText : styles.missingText}`}>
             {isOwned
               ? `Possédée${quantity > 1 ? ` x${quantity}` : ""}`
