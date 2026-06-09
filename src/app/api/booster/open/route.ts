@@ -4,6 +4,7 @@ import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { checkAndResetQuota, incrementBoosterCount, MAX_BOOSTERS_PER_DAY } from '@/lib/quota';
 import { getCardsByCollection } from '@/data/clubCards';
 import { checkAndUpdateStreak } from '@/lib/streak';
+import { updateQuestProgress } from '@/lib/quests';
 
 export const dynamic = 'force-dynamic';
 
@@ -180,6 +181,20 @@ export async function POST(request: NextRequest) {
     });
 
     const boostersOpenedToday = await incrementBoosterCount(decoded.userId);
+
+    // Update lifetime stats
+    const legendaryCount = draws.filter((d) => d.card.rarity === 'LEGENDAIRE').length;
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: {
+        totalBoostersOpened: { increment: 1 },
+        totalCardsObtained: { increment: draws.length },
+        totalLegendaries: { increment: legendaryCount },
+      },
+    });
+
+    // Update quest progress
+    await updateQuestProgress(decoded.userId, 'booster_count', 1);
 
     return NextResponse.json({
       cards: draws,

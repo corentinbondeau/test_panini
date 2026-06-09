@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { getCardsByCollection } from '@/data/clubCards';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
+import { updateQuestProgress } from '@/lib/quests';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,13 @@ export async function POST(request: NextRequest) {
       where: { id: userCollection.id },
       data: { cards: currentCards },
     });
+
+    // Track stats and quest progress
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { totalRecycles: { increment: ratio } },
+    });
+    await updateQuestProgress(decoded.userId, 'recycle_count', ratio);
 
     return NextResponse.json({
       card: {
