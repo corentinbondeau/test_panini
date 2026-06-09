@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './header.module.css';
 
 export function Header() {
@@ -22,6 +23,7 @@ export function Header() {
           <Image src="/logo-club.png" alt="ECC" width={28} height={28} className={styles.logoImg} />
           ECC Panini
         </Link>
+        <ThemeToggle />
         <button className={styles.burger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
