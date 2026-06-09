@@ -13,9 +13,10 @@ type CardTileProps = {
   card: Card;
   quantity: number;
   onClick?: () => void;
+  isShiny?: boolean;
 };
 
-export const CardTile = memo(function CardTile({ card, quantity, onClick }: CardTileProps) {
+export const CardTile = memo(function CardTile({ card, quantity, onClick, isShiny }: CardTileProps) {
   const isOwned = quantity > 0;
   const isDouble = quantity > 1;
   const [imgSrc, setImgSrc] = useState(card.imageUrl || card.photo);
@@ -36,7 +37,7 @@ export const CardTile = memo(function CardTile({ card, quantity, onClick }: Card
 
   return (
     <article
-      className={`${styles.card} ${isOwned ? styles.owned : styles.missing} ${isDouble ? styles.double : ""} ${hasRealPhoto ? styles.real : ""} ${onClick ? styles.clickable : ""} ${rarityStyles}`}
+      className={`${styles.card} ${isOwned ? styles.owned : styles.missing} ${isDouble ? styles.double : ""} ${hasRealPhoto ? styles.real : ""} ${onClick ? styles.clickable : ""} ${isShiny ? styles.shiny : ""} ${rarityStyles}`}
       onClick={onClick}
     >
       <QuantityBadge quantity={quantity} />

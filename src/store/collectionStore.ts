@@ -16,6 +16,7 @@ export type BoosterCardDraw = {
 
 type CollectionState = {
   quantities: Record<string, number>;
+  shinyCards: string[];
   activeCollectionId: string;
   lastDrawCardId: string | null;
   lastDrawWasDuplicate: boolean;
@@ -31,11 +32,13 @@ type CollectionState = {
   syncToServer: (token: string, collectionId?: string) => Promise<void>;
   loadFromServer: (token: string, collectionId?: string) => Promise<void>;
   setQuantities: (quantities: Record<string, number>) => void;
+  setShinyCards: (shinyCards: string[]) => void;
 };
 
 export const useCollectionStore = create<CollectionState>()(
   (set, get) => ({
     quantities: {},
+    shinyCards: [],
     activeCollectionId: DEFAULT_COLLECTION_ID,
     lastDrawCardId: null,
     lastDrawWasDuplicate: false,
@@ -45,6 +48,7 @@ export const useCollectionStore = create<CollectionState>()(
     setActiveCollectionId: (id) => set({ activeCollectionId: id }),
 
     setQuantities: (quantities) => set({ quantities }),
+    setShinyCards: (shinyCards) => set({ shinyCards }),
 
     addCard: (cardId, amount = 1) =>
       set((state) => {
@@ -162,9 +166,10 @@ export const useCollectionStore = create<CollectionState>()(
           const data = await response.json();
           if (data.collection) {
             const serverCards = data.collection.cards as Record<string, number>;
-            set({ quantities: serverCards, syncError: null });
+            const serverShiny = (data.collection.shinyCards as string[]) || [];
+            set({ quantities: serverCards, shinyCards: serverShiny, syncError: null });
           } else {
-            set({ quantities: {} });
+            set({ quantities: {}, shinyCards: [] });
           }
         }
         set({ initialized: true });

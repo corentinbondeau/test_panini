@@ -240,6 +240,31 @@
   opacity: 0.9;
 }
 
+.fuseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .fuseGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cardName {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.fuseCount {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--club-yellow-500);
+}
+
 .empty {
   color: #d7e7ff;
   padding: 10px 12px;

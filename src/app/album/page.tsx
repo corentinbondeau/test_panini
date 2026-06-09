@@ -22,6 +22,7 @@ export default function AlbumPage() {
   const { quantities } = useCollectionSelectors();
   const storeCollectionId = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
+  const shinyCards = useCollectionStore((s) => s.shinyCards);
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [search, setSearch] = useState("");
@@ -285,7 +286,7 @@ export default function AlbumPage() {
           <div className={styles.grid}>
             {visibleCards.map((card) => (
               <div key={card.id}>
-                <CardTile card={card} quantity={quantities[card.id] ?? 0} onClick={() => setSelectedCard(card)} />
+                <CardTile card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} onClick={() => setSelectedCard(card)} />
               </div>
             ))}
           </div>

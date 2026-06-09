@@ -9,6 +9,7 @@ import { RarityBadge } from "@/components/cards/RarityBadge";
 import { useCollectionSelectors, useCollectionStore } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
 import { CardRarity } from "@/data/cards";
+import { ALL_CLUB_CARDS } from "@/data/clubCards";
 import styles from "./page.module.css";
 
 const RECYCLE_RATIOS: Record<string, { required: number; label: string }> = {
@@ -30,6 +31,9 @@ export default function DoublesPage() {
     quantityAfter: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fuseCardId, setFuseCardId] = useState<string | null>(null);
+  const [fuseLoading, setFuseLoading] = useState(false);
+  const shinyCards = useCollectionStore((s) => s.shinyCards);
 
   useEffect(() => {
     if (token) {
@@ -175,6 +179,54 @@ export default function DoublesPage() {
         </AnimatePresence>
       </div>
 
+      {/* Fuse Section */}
+      <div className={styles.recycleSection}>
+        <h3 className={styles.recycleTitle}>✨ Fusion Shiny</h3>
+        <p className={styles.recycleDesc}>
+          Fusionne 3 exemplaires identiques pour obtenir une version Shiny avec un effet holographique.
+        </p>
+        {sorted.filter((c) => (quantities[c.id] ?? 0) >= 3 && !shinyCards.includes(c.id)).length === 0 ? (
+          <p className={styles.empty}>Aucune carte fusionnable (3+ exemplaires).</p>
+        ) : (
+          <div className={styles.fuseGrid}>
+            {sorted.filter((c) => (quantities[c.id] ?? 0) >= 3 && !shinyCards.includes(c.id)).map((card) => (
+              <div key={card.id} className={styles.recycleCard}>
+                <p className={styles.cardName}>{card.firstName} {card.lastName}</p>
+                <p className={styles.fuseCount}>x{quantities[card.id]}</p>
+                <button
+                  onClick={async () => {
+                    if (!token) return;
+                    setFuseLoading(true);
+                    setError('');
+                    try {
+                      const res = await fetch('/api/cards/fuse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ cardId: card.id }),
+                      });
+                      const d = await res.json();
+                      if (!res.ok) throw new Error(d.error);
+                      setQuantities(d.quantities);
+                      useCollectionStore.getState().setShinyCards(d.shinyCards);
+                      setFuseCardId(card.id);
+                      setTimeout(() => setFuseCardId(null), 2000);
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Erreur');
+                    } finally {
+                      setFuseLoading(false);
+                    }
+                  }}
+                  disabled={fuseLoading}
+                  className={styles.recycleBtn}
+                >
+                  {fuseLoading ? 'Fusion...' : '✨ Fusionner'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Exchange banner */}
       <div className={styles.exchangeBanner}>
         <p>Échange tes doubles avec d&apos;autres joueurs !</p>
@@ -188,7 +240,7 @@ export default function DoublesPage() {
       ) : (
         <div className={styles.grid}>
           {sorted.map((card) => (
-            <CardTile key={card.id} card={card} quantity={quantities[card.id] ?? 0} />
+            <CardTile key={card.id} card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} />
           ))}
         </div>
       )}
