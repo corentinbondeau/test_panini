@@ -78,6 +78,8 @@ model User {
   pushSubscriptions PushSubscription[]
   quests            UserQuest[]
   marketplaceListings MarketplaceListing[]
+  clanMemberships   ClanMember[]
+  clanRequests      ClanRequest[]
 }
 
 // User's card collection per season
@@ -236,6 +238,48 @@ model UserQuest {
 
   @@unique([userId, questId])
   @@index([userId])
+}
+
+// Clan / Guild system
+model Clan {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String?
+  avatar      String?
+  weeklyXP    Int      @default(0)
+  maxMembers  Int      @default(20)
+  createdAt   DateTime @default(now())
+
+  members     ClanMember[]
+  requests    ClanRequest[]
+}
+
+model ClanMember {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  clanId  String   @db.ObjectId
+  userId  String   @db.ObjectId
+  role    String   @default("member") // 'leader' | 'member'
+  joinedAt DateTime @default(now())
+
+  clan Clan @relation(fields: [clanId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clanId, userId])
+  @@index([userId])
+}
+
+model ClanRequest {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  clanId           String   @db.ObjectId
+  userId           String   @db.ObjectId
+  cardIdRequested  String
+  status           String   @default("open") // 'open' | 'fulfilled'
+  createdAt        DateTime @default(now())
+
+  clan  Clan  @relation(fields: [clanId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clanId, status])
 }
 
 // Flash Events (Happy Hours)
