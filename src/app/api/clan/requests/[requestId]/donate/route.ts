@@ -75,7 +75,7 @@ export async function POST(
       });
 
       // 3. Get/update requester's collection
-      let requesterCollection = await tx.userCollection.findUnique({
+      const requesterCollection = await tx.userCollection.findUnique({
         where: {
           userId_collectionId: { userId: clanRequest.userId, collectionId: collection.id },
         },

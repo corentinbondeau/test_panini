@@ -3,14 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CardFlip } from '@/components/cards/CardFlip';
+import { Card } from '@/data/cards';
 import styles from './page.module.css';
 
-type CardData = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  photo: string;
-  rarity: string;
+type CardData = Card & {
   quantity: number;
   isShiny: boolean;
 };

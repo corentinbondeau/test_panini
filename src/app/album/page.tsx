@@ -123,7 +123,6 @@ export default function AlbumPage() {
     setDebouncedSearch("");
     setCategoryFilter("");
     setRarityFilter("");
-    setVisibleCount(CARDS_PER_PAGE);
   };
 
   if (!isInitialized) {
@@ -175,10 +174,9 @@ export default function AlbumPage() {
                 type="text"
                 placeholder="Rechercher un joueur..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setVisibleCount(CARDS_PER_PAGE);
-                }}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                  }}
                 className={styles.searchInput}
               />
             </div>
@@ -200,7 +198,6 @@ export default function AlbumPage() {
             <button
               onClick={() => {
                 setCategoryFilter("");
-                setVisibleCount(CARDS_PER_PAGE);
               }}
               className={!categoryFilter ? styles.chipActive : styles.chip}
             >
@@ -211,7 +208,6 @@ export default function AlbumPage() {
                 key={cat}
                 onClick={() => {
                   setCategoryFilter(cat === categoryFilter ? "" : cat);
-                  setVisibleCount(CARDS_PER_PAGE);
                 }}
                 className={cat === categoryFilter ? styles.chipActive : styles.chip}
               >
@@ -235,7 +231,6 @@ export default function AlbumPage() {
               <button
                 onClick={() => {
                   setRarityFilter("");
-                  setVisibleCount(CARDS_PER_PAGE);
                 }}
                 className={!rarityFilter ? styles.chipActive : styles.chip}
               >
@@ -246,7 +241,6 @@ export default function AlbumPage() {
                   key={r}
                   onClick={() => {
                     setRarityFilter(r === rarityFilter ? "" : r);
-                    setVisibleCount(CARDS_PER_PAGE);
                   }}
                   className={r === rarityFilter ? styles.chipActive : styles.chip}
                 >

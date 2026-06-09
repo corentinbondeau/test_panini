@@ -21,9 +21,6 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
 
   if (!user) return [];
 
-  const cards = getCardsByCollection(collectionSlug || DEFAULT_COLLECTION_ID);
-  const badges = (user.badges as string[]) || [];
-
   const userQuests = await prisma.userQuest.findMany({
     where: { userId },
   });
@@ -35,7 +32,10 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
   for (const def of QUEST_DEFINITIONS) {
     const existing = questMap.get(def.id);
     const progress = existing?.progress ?? 0;
-    const currentCount = await getCurrentCount(user, def.type, cards);
+    const currentCount = await getCurrentCount(
+      { totalBoostersOpened: user.totalBoostersOpened, totalRecycles: user.totalRecycles },
+      def.type,
+    );
 
     // Sync progress automatically
     const syncedProgress = Math.max(progress, currentCount);
@@ -52,9 +52,8 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
 }
 
 async function getCurrentCount(
-  user: { totalBoostersOpened: number; totalRecycles: number; badges: string[] },
+  user: { totalBoostersOpened: number; totalRecycles: number },
   type: string,
-  cards: { id: string; rarity: string }[],
 ): Promise<number> {
   switch (type) {
     case 'booster_count':
