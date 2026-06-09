@@ -76,6 +76,8 @@ model User {
   tradeLogsGiven    TradeLog[]        @relation("TradeGiver")
   tradeLogsReceived TradeLog[]        @relation("TradeReceiver")
   pushSubscriptions PushSubscription[]
+  quests            UserQuest[]
+  marketplaceListings MarketplaceListing[]
 }
 
 // User's card collection per season
@@ -234,6 +236,20 @@ model UserQuest {
 
   @@unique([userId, questId])
   @@index([userId])
+}
+
+// Flash Events (Happy Hours)
+model Event {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String   // 'happy_hour'
+  startTime DateTime
+  endTime   DateTime
+  active    Boolean  @default(false)
+  modification Json  // { boosterBonusChance: number, recycleCostReduction: number }
+  createdAt DateTime @default(now())
+
+  @@index([active])
+  @@index([type])
 }
 
 // Web Push subscriptions
