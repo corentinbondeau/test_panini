@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import Image from "next/image";
 import { Card } from "@/data/cards";
 import { QuantityBadge } from "./QuantityBadge";
@@ -15,7 +15,7 @@ type CardTileProps = {
   onClick?: () => void;
 };
 
-export function CardTile({ card, quantity, onClick }: CardTileProps) {
+export const CardTile = memo(function CardTile({ card, quantity, onClick }: CardTileProps) {
   const isOwned = quantity > 0;
   const isDouble = quantity > 1;
   const [imgSrc, setImgSrc] = useState(card.imageUrl || card.photo);
@@ -61,4 +61,4 @@ export function CardTile({ card, quantity, onClick }: CardTileProps) {
       </div>
     </article>
   );
-}
+});

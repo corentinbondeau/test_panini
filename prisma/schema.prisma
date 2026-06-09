@@ -67,9 +67,13 @@ model UserCollection {
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
+  // Compound index for the main query pattern: findUnique({ userId_collectionId })
   @@unique([userId, collectionId])
+  // Individual indexes for filtered queries by user or collection alone
   @@index([userId])
   @@index([collectionId])
+  // Index on updatedAt for paginated list queries ordered by last update
+  @@index([updatedAt])
 }
 
 // Exchange system between users

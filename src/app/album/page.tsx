@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { CardTile } from "@/components/cards/CardTile";
 import { CardModal } from "@/components/cards/CardModal";
 import { useCollectionStore, useCollectionSelectors } from "@/store/collectionStore";
@@ -14,6 +14,8 @@ import styles from "./page.module.css";
 
 const ALL_OPTION = { id: ALL_COLLECTIONS_ID, name: "Toutes les collections" };
 const TAB_OPTIONS = [ALL_OPTION, ...COLLECTIONS];
+const CARDS_PER_PAGE = 50;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export default function AlbumPage() {
   const { user, checkAuth } = useAuthStore();
@@ -23,14 +25,27 @@ export default function AlbumPage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState(storeCollectionId);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [rarityFilter, setRarityFilter] = useState("");
   const [onlyOwned, setOnlyOwned] = useState(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [collectionLoading, setCollectionLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(CARDS_PER_PAGE);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
   const token = useAuthStore((s) => s.token);
+
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [search]);
 
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
@@ -51,9 +66,11 @@ export default function AlbumPage() {
     setSelectedCollection(id);
     setActiveCollectionId(id);
     setSearch("");
+    setDebouncedSearch("");
     setCategoryFilter("");
     setRarityFilter("");
     setSelectedCard(null);
+    setVisibleCount(CARDS_PER_PAGE);
   };
 
   const collectionCards = useMemo(
@@ -79,8 +96,8 @@ export default function AlbumPage() {
   const filteredCards = useMemo(() => {
     let cards = collectionCards;
     if (!cards?.length) return [];
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.trim().toLowerCase();
       cards = cards.filter(
         (c) =>
           (c?.firstName?.toLowerCase() ?? '').includes(q) ||
@@ -98,14 +115,27 @@ export default function AlbumPage() {
       cards = cards.filter((c) => (quantities?.[c?.id] ?? 0) > 0);
     }
     return cards;
-  }, [collectionCards, search, categoryFilter, rarityFilter, onlyOwned, quantities]);
+  }, [collectionCards, debouncedSearch, categoryFilter, rarityFilter, onlyOwned, quantities]);
 
-  const hasActiveFilter = search.trim() !== "" || categoryFilter !== "" || rarityFilter !== "";
+  const visibleCards = useMemo(
+    () => filteredCards.slice(0, visibleCount),
+    [filteredCards, visibleCount]
+  );
+
+  const hasMore = filteredCards.length > visibleCount;
+
+  const hasActiveFilter = debouncedSearch.trim() !== "" || categoryFilter !== "" || rarityFilter !== "";
+
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + CARDS_PER_PAGE);
+  };
 
   const handleReset = () => {
     setSearch("");
+    setDebouncedSearch("");
     setCategoryFilter("");
     setRarityFilter("");
+    setVisibleCount(CARDS_PER_PAGE);
   };
 
   if (!isInitialized) {
@@ -157,7 +187,10 @@ export default function AlbumPage() {
                 type="text"
                 placeholder="Rechercher un joueur..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setVisibleCount(CARDS_PER_PAGE);
+                }}
                 className={styles.searchInput}
               />
             </div>
@@ -177,7 +210,10 @@ export default function AlbumPage() {
           {/* Row 1b: Category filters */}
           <div className={`${styles.chipRow} ${styles.chipRowGap}`}>
             <button
-              onClick={() => setCategoryFilter("")}
+              onClick={() => {
+                setCategoryFilter("");
+                setVisibleCount(CARDS_PER_PAGE);
+              }}
               className={!categoryFilter ? styles.chipActive : styles.chip}
             >
               Tous
@@ -185,7 +221,10 @@ export default function AlbumPage() {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setCategoryFilter(cat === categoryFilter ? "" : cat)}
+                onClick={() => {
+                  setCategoryFilter(cat === categoryFilter ? "" : cat);
+                  setVisibleCount(CARDS_PER_PAGE);
+                }}
                 className={cat === categoryFilter ? styles.chipActive : styles.chip}
               >
                 {cat}
@@ -206,7 +245,10 @@ export default function AlbumPage() {
           {rarities.length > 1 && (
             <div className={`${styles.chipRow} ${styles.chipRowCentered}`}>
               <button
-                onClick={() => setRarityFilter("")}
+                onClick={() => {
+                  setRarityFilter("");
+                  setVisibleCount(CARDS_PER_PAGE);
+                }}
                 className={!rarityFilter ? styles.chipActive : styles.chip}
               >
                 Toutes
@@ -214,7 +256,10 @@ export default function AlbumPage() {
               {rarities.map((r) => (
                 <button
                   key={r}
-                  onClick={() => setRarityFilter(r === rarityFilter ? "" : r)}
+                  onClick={() => {
+                    setRarityFilter(r === rarityFilter ? "" : r);
+                    setVisibleCount(CARDS_PER_PAGE);
+                  }}
                   className={r === rarityFilter ? styles.chipActive : styles.chip}
                 >
                   {r}
@@ -236,23 +281,22 @@ export default function AlbumPage() {
           Aucun joueur ne correspond a votre recherche.
         </p>
       ) : (
-        <div className={styles.grid}>
-          <AnimatePresence mode="popLayout">
-            {filteredCards.map((card) => (
-              <motion.div
-                key={card.id}
-                layout
-                layoutId={`card-${card.id}`}
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.92 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-              >
+        <>
+          <div className={styles.grid}>
+            {visibleCards.map((card) => (
+              <div key={card.id}>
                 <CardTile card={card} quantity={quantities[card.id] ?? 0} onClick={() => setSelectedCard(card)} />
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
-        </div>
+          </div>
+          {hasMore && (
+            <div className={styles.showMoreWrapper}>
+              <button onClick={handleShowMore} className={styles.showMoreBtn}>
+                Afficher plus ({filteredCards.length - visibleCount} restantes)
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <AnimatePresence>

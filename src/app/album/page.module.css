@@ -325,3 +325,29 @@
 .loginLink:hover {
   opacity: 0.85;
 }
+
+/* --- Show more pagination --- */
+
+.showMoreWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.showMoreBtn {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--club-yellow-500);
+  background: transparent;
+  color: var(--club-yellow-500);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
+}
+
+.showMoreBtn:hover {
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+}
