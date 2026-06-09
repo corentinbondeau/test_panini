@@ -17,7 +17,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, email, avatar, isPublicAlbum } = body;
+    const { firstName, lastName, email, avatar, isPublicAlbum, showcase, unlockedCardBacks, activeCardBack } = body;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: Record<string, any> = {};
@@ -26,6 +26,9 @@ export async function PUT(request: NextRequest) {
     if (email !== undefined) updateData.email = email;
     if (avatar !== undefined) updateData.avatar = avatar;
     if (isPublicAlbum !== undefined) updateData.isPublicAlbum = isPublicAlbum;
+    if (showcase !== undefined) updateData.showcase = showcase;
+    if (unlockedCardBacks !== undefined) updateData.unlockedCardBacks = unlockedCardBacks;
+    if (activeCardBack !== undefined) updateData.activeCardBack = activeCardBack;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 });
