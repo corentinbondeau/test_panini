@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         avatar: true,
         role: true,
         createdAt: true,
+        isPublicAlbum: true,
       },
     });
 

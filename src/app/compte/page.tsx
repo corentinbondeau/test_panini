@@ -36,6 +36,10 @@ export default function ComptePage() {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
 
+  // Public album state
+  const [isPublicAlbum, setIsPublicAlbum] = useState(false);
+  const [publicAlbumLoading, setPublicAlbumLoading] = useState(false);
+
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
@@ -45,6 +49,7 @@ export default function ComptePage() {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setEmail(user.email || '');
+      setIsPublicAlbum(user.isPublicAlbum ?? false);
     }
   }, [user]);
 
@@ -404,6 +409,47 @@ export default function ComptePage() {
             className={`${styles.toggleSwitch} ${pushEnabled ? styles.toggleActive : ''}`}
             role="switch"
             aria-checked={pushEnabled}
+          >
+            <span className={styles.toggleKnob} />
+          </button>
+        </div>
+      </section>
+
+      {/* Public Album */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Album public</h2>
+        <div className={styles.toggleRow}>
+          <div>
+            <p className={styles.toggleLabel}>Rendre mon album public</p>
+            <p className={styles.toggleDesc}>
+              Permets à n&apos;importe qui de consulter ta collection via un lien.
+            </p>
+          </div>
+          <button
+            onClick={async () => {
+              if (!token) return;
+              setPublicAlbumLoading(true);
+              try {
+                const res = await fetch('/api/auth/update', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ isPublicAlbum: !isPublicAlbum }),
+                });
+                if (!res.ok) throw new Error('Erreur');
+                setIsPublicAlbum(!isPublicAlbum);
+                setToastMessage(isPublicAlbum ? 'Album rendu privé' : 'Album rendu public');
+                setShowToast(true);
+              } catch {
+                setToastMessage('Erreur lors de la mise à jour');
+                setShowToast(true);
+              } finally {
+                setPublicAlbumLoading(false);
+              }
+            }}
+            disabled={publicAlbumLoading}
+            className={`${styles.toggleSwitch} ${isPublicAlbum ? styles.toggleActive : ''}`}
+            role="switch"
+            aria-checked={isPublicAlbum}
           >
             <span className={styles.toggleKnob} />
           </button>

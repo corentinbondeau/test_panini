@@ -9,6 +9,7 @@ export interface User {
   avatar?: string;
   role?: string;
   createdAt?: string;
+  isPublicAlbum?: boolean;
 }
 
 interface AuthStore {
