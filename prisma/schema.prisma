@@ -40,6 +40,30 @@ model User {
   tradesMadeToday     Int      @default(0)
   lastResetDate       DateTime?
 
+  // Daily Streak
+  currentStreak   Int        @default(0)
+  lastLoginDate   DateTime?
+
+  // Virtual currency for marketplace
+  tokens          Int        @default(0)
+
+  // Total stats for badges
+  totalRecycles   Int        @default(0)
+  totalBoostersOpened Int   @default(0)
+  totalLegendaries     Int  @default(0)
+  totalCardsObtained   Int  @default(0)
+
+  // Achievements & badges
+  badges          Json       @default("[]")
+
+  // Public album sharing
+  isPublicAlbum   Boolean    @default(false)
+
+  // Notification preferences
+  notifyBoosterReminder  Boolean @default(true)
+  notifyMarketplaceAlert Boolean @default(true)
+  notifyBadgeUnlocked    Boolean @default(true)
+
   // Role: "member" or "admin"
   role    String @default("member")
 
@@ -172,6 +196,40 @@ model CustomCard {
   photo        String   @default("/logo-club.png")
   createdAt    DateTime @default(now())
   createdBy    String   @db.ObjectId
+}
+
+// Marketplace listing for token-based card trading
+model MarketplaceListing {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  sellerId  String   @db.ObjectId
+  cardId    String
+  price     Int
+  status    String   @default("active") // active, sold, cancelled
+  createdAt DateTime @default(now())
+
+  seller User @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([cardId])
+}
+
+// User-specific quest progress
+model UserQuest {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  questId        String   // references a quest definition key
+  progress       Int      @default(0)
+  target         Int
+  completed      Boolean  @default(false)
+  rewardClaimed  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId])
+  @@index([userId])
 }
 
 // Web Push subscriptions

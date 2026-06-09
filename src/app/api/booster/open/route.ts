@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { checkAndResetQuota, incrementBoosterCount, MAX_BOOSTERS_PER_DAY } from '@/lib/quota';
 import { getCardsByCollection } from '@/data/clubCards';
+import { checkAndUpdateStreak } from '@/lib/streak';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateToken, verifyPassword } from '@/lib/auth';
+import { checkAndUpdateStreak } from '@/lib/streak';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
 
     const token = generateToken(user.id);
 
+    // Update streak on login
+    const streak = await checkAndUpdateStreak(user.id);
+
     return NextResponse.json({
       message: 'Connexion réussie',
       user: {
@@ -51,6 +55,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
       token,
+      streak,
     }, { status: 200 });
 
   } catch (error) {
