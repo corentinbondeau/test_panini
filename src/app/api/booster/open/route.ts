@@ -5,6 +5,7 @@ import { checkAndResetQuota, incrementBoosterCount, MAX_BOOSTERS_PER_DAY } from 
 import { getCardsByCollection } from '@/data/clubCards';
 import { checkAndUpdateStreak } from '@/lib/streak';
 import { updateQuestProgress } from '@/lib/quests';
+import { checkAndUnlockBadges } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -196,6 +197,9 @@ export async function POST(request: NextRequest) {
     // Update quest progress
     await updateQuestProgress(decoded.userId, 'booster_count', 1);
 
+    // Check for new badges
+    const newBadges = await checkAndUnlockBadges(decoded.userId);
+
     return NextResponse.json({
       cards: draws,
       boostersRemainingToday: MAX_BOOSTERS_PER_DAY - boostersOpenedToday,
@@ -204,6 +208,7 @@ export async function POST(request: NextRequest) {
         boostersOpenedToday,
         maxBoostersPerDay: MAX_BOOSTERS_PER_DAY,
       },
+      newBadges,
     });
   } catch (error) {
     console.error('Open booster error:', error);

@@ -4,6 +4,7 @@ import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { getCardsByCollection } from '@/data/clubCards';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 import { updateQuestProgress } from '@/lib/quests';
+import { checkAndUnlockBadges } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,6 +111,8 @@ export async function POST(request: NextRequest) {
     });
     await updateQuestProgress(decoded.userId, 'recycle_count', ratio);
 
+    const newBadges = await checkAndUnlockBadges(decoded.userId);
+
     return NextResponse.json({
       card: {
         id: randomCard.id,
@@ -127,6 +130,7 @@ export async function POST(request: NextRequest) {
       wasDuplicate: previous >= 1,
       quantityAfter: previous + 1,
       quantities: currentCards,
+      newBadges,
     });
   } catch (error) {
     console.error('Recycle error:', error);
