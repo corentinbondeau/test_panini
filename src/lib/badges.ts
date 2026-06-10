@@ -55,3 +55,11 @@ export async function getUserBadges(userId: string): Promise<{ id: string; name:
     .filter((b) => userBadgeIds.has(b.id))
     .map((b) => ({ id: b.id, name: b.name, description: b.description, icon: b.icon }));
 }
+
+export async function getUserBadgeIds(userId: string): Promise<string[]> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { badges: true },
+  });
+  return (user?.badges as string[]) || [];
+}
