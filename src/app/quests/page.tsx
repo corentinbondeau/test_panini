@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { Coins, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import styles from './page.module.css';
 
@@ -11,10 +12,11 @@ type Quest = {
   description: string;
   type: string;
   target: number;
-  rewardBoosters: number;
+  rewardTokens: number;
   progress: number;
   completed: boolean;
   rewardClaimed: boolean;
+  isDaily: boolean;
 };
 
 export default function QuestsPage() {
@@ -30,12 +32,13 @@ export default function QuestsPage() {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
 
-  useEffect(() => {
+  const fetchQuests = useCallback(() => {
     if (!token) {
       setLoading(false);
       return;
     }
     setError('');
+    setLoading(true);
     fetch('/api/quests', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -50,6 +53,10 @@ export default function QuestsPage() {
       });
   }, [token]);
 
+  useEffect(() => {
+    fetchQuests();
+  }, [fetchQuests]);
+
   const handleClaim = async (questId: string) => {
     if (!token) return;
     setClaimingId(questId);
@@ -63,7 +70,7 @@ export default function QuestsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setSuccess('Récompense récupérée !');
+      setSuccess('+5 pièces récupérées !');
       setQuests((prev) =>
         prev.map((q) =>
           q.id === questId ? { ...q, rewardClaimed: true } : q,
@@ -82,7 +89,7 @@ export default function QuestsPage() {
 
   if (!user) {
     return (
-      <div>
+      <div className={styles.page}>
         <h2>Quêtes</h2>
         <p>Connectez-vous pour accéder aux quêtes.</p>
         <Link href="/auth">Se connecter</Link>
@@ -90,26 +97,20 @@ export default function QuestsPage() {
     );
   }
 
-  const icon = (q: Quest) => {
-    if (q.rewardClaimed) return '✅';
-    if (q.completed) return '⭐';
-    return '📦';
-  };
-
-  const iconClass = (q: Quest) => {
-    if (q.rewardClaimed) return styles.iconDone;
-    if (q.completed) return styles.iconAvailable;
-    return styles.iconLocked;
-  };
-
   const pct = (q: Quest) => Math.min(100, Math.round((q.progress / q.target) * 100));
 
   return (
-    <section>
-      <h2>Quêtes</h2>
-      <p className={styles.note}>
-        Accomplis des quêtes pour gagner des boosters gratuits.
-      </p>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <h2>Défis Journaliers</h2>
+        <p className={styles.note}>
+          Chaque défi complété rapporte 5 pièces. Nouveaux défis chaque jour à minuit.
+        </p>
+        <button onClick={fetchQuests} className={styles.refreshBtn} disabled={loading}>
+          <RotateCcw size={14} />
+          Actualiser
+        </button>
+      </div>
 
       {error && <div className={styles.error}>{error}</div>}
       {success && <div className={styles.success}>{success}</div>}
@@ -117,47 +118,54 @@ export default function QuestsPage() {
       {loading ? (
         <p className={styles.loading}>Chargement des quêtes...</p>
       ) : quests.length === 0 ? (
-        <p className={styles.loading}>Aucune quête disponible.</p>
+        <div className={styles.empty}>
+          <p>Aucun défi disponible aujourd&apos;hui.</p>
+          <p className={styles.emptyHint}>Reviens demain pour de nouveaux défis !</p>
+        </div>
       ) : (
         <div className={styles.list}>
           {quests.map((q) => (
-            <div key={q.id} className={styles.card}>
-              <div className={`${styles.icon} ${iconClass(q)}`}>
-                {icon(q)}
+            <div key={q.id} className={`${styles.card} ${q.completed ? styles.cardComplete : ''} ${q.rewardClaimed ? styles.cardClaimed : ''}`}>
+              <div className={styles.cardLeft}>
+                <div className={`${styles.icon} ${q.rewardClaimed ? styles.iconDone : q.completed ? styles.iconAvailable : styles.iconLocked}`}>
+                  {q.rewardClaimed ? '✅' : q.completed ? '⭐' : '📦'}
+                </div>
               </div>
-              <div className={styles.body}>
-                <p className={styles.title}>{q.title}</p>
-                <p className={styles.description}>
+              <div className={styles.cardBody}>
+                <p className={styles.cardTitle}>{q.title}</p>
+                <p className={styles.cardDesc}>
                   {q.description} — {q.progress}/{q.target}
                 </p>
                 <div className={styles.progressBar}>
                   <div
-                    className={`${styles.progressFill} ${q.rewardClaimed ? styles.progressFillDone : styles.progressFillAvailable}`}
+                    className={`${styles.progressFill} ${q.rewardClaimed ? styles.progressDone : styles.progressActive}`}
                     style={{ width: `${pct(q)}%` }}
                   />
                 </div>
               </div>
-              {q.rewardClaimed ? (
-                <span className={styles.doneBadge}>
-                  +{q.rewardBoosters} booster{q.rewardBoosters > 1 ? 's' : ''}
-                </span>
-              ) : q.completed ? (
-                <button
-                  onClick={() => handleClaim(q.id)}
-                  disabled={claimingId === q.id}
-                  className={styles.claimBtn}
-                >
-                  {claimingId === q.id ? '...' : `Réclamer (+${q.rewardBoosters})`}
-                </button>
-              ) : (
-                <span className={styles.doneBadge}>
-                  {pct(q)}%
-                </span>
-              )}
+              <div className={styles.cardRight}>
+                <div className={styles.rewardBadge}>
+                  <Coins size={14} />
+                  <span>5</span>
+                </div>
+                {q.rewardClaimed ? (
+                  <span className={styles.claimedBadge}>Réclamée</span>
+                ) : q.completed ? (
+                  <button
+                    onClick={() => handleClaim(q.id)}
+                    disabled={claimingId === q.id}
+                    className={styles.claimBtn}
+                  >
+                    {claimingId === q.id ? '...' : 'Réclamer'}
+                  </button>
+                ) : (
+                  <span className={styles.progressPct}>{pct(q)}%</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }

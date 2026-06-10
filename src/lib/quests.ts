@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import { QUEST_DEFINITIONS, QuestDefinition } from '@/data/quests';
-import { getCardsByCollection } from '@/data/clubCards';
-import { DEFAULT_COLLECTION_ID } from '@/data/cards';
 
 export type QuestWithProgress = QuestDefinition & {
   progress: number;
