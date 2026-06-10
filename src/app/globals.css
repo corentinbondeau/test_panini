@@ -50,6 +50,36 @@ a {
 /* Avatar border cosmetic classes */
 .avatar-ring-basic { }
 .avatar-ring-silver { border-radius: 9999px; }
-.avatar-ring-gold { border-radius: 9999px; }
-.avatar-ring-neon { border-radius: 9999px; }
+.avatar-ring-gold { border-radius: 9999px; animation: rotateBg 4s linear infinite; }
+.avatar-ring-neon { border-radius: 9999px; animation: rotateBg 3s linear infinite; }
+
+@keyframes rotateBg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 24px rgba(99,102,241,0.9), inset 0 0 8px rgba(236,72,153,0.6); }
+  50% { box-shadow: 0 0 40px rgba(99,102,241,1), inset 0 0 16px rgba(236,72,153,0.8); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--club-blue-700);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--club-blue-300);
+}
 
