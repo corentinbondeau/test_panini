@@ -63,6 +63,17 @@
 
 /* --- Exchange shortcut --- */
 
+.questsWidgetWrapper {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .questsWidgetWrapper {
+    grid-column: 2;
+    grid-row: 4;
+  }
+}
+
 .exchangeShortcut {
   grid-column: 1 / -1;
   display: flex;

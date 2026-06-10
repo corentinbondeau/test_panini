@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BoosterDraw } from "@/components/booster/BoosterDraw";
 import { ProgressPanel } from "@/components/stats/ProgressPanel";
+import { DailyQuestsWidget } from "@/components/quests/DailyQuestsWidget";
 import { useCollectionStore } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
 import { COLLECTIONS, ALL_COLLECTIONS_ID } from "@/data/cards";
@@ -66,6 +67,10 @@ export default function HomePage() {
         <p>
           {"Bienvenue sur ECC Panini, la plateforme de collection de cartes du club. Collectionnez tous les joueurs, staff et dirigeants, ouvrez des boosters, et echangez vos doubles avec les autres supporters."}
         </p>
+      </div>
+
+      <div className={styles.questsWidgetWrapper}>
+        <DailyQuestsWidget />
       </div>
 
       <Link href="/echange" className={styles.exchangeShortcut}>
