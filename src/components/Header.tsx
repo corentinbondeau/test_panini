@@ -43,6 +43,12 @@ export function Header() {
           </button>
         </div>
         <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+          {user && (
+            <div className={styles.tokenBadgeMobile}>
+              <Image src="/logo-club.png" alt="ECC" width={16} height={16} />
+              <span>{user.tokens ?? 0} 🪙</span>
+            </div>
+          )}
           <Link href="/" onClick={() => setMenuOpen(false)}>Accueil</Link>
           <Link href="/booster" onClick={() => setMenuOpen(false)}>Booster</Link>
           <Link href="/album" onClick={() => setMenuOpen(false)}>Album</Link>
