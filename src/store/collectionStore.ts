@@ -27,7 +27,7 @@ type CollectionState = {
   setQuantity: (cardId: string, quantity: number) => void;
   removeCard: (cardId: string, amount?: number) => void;
   setActiveCollectionId: (id: string) => void;
-  openBoosterPackAsync: (collectionId: string, token: string) => Promise<BoosterCardDraw[]>;
+  openBoosterPackAsync: (collectionId: string, token: string) => Promise<{ cards: BoosterCardDraw[]; newBadges: string[] }>;
   resetCollection: () => void;
   getQuantity: (cardId: string) => number;
   syncToServer: (token: string, collectionId?: string) => Promise<void>;
@@ -126,7 +126,7 @@ export const useCollectionStore = create<CollectionState>()(
         syncError: null,
       });
 
-      return cards;
+      return { cards, newBadges: (data.newBadges as string[]) ?? [] };
     },
 
     resetCollection: () =>

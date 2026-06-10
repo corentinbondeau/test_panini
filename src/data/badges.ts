@@ -12,6 +12,7 @@ export type UserStats = {
   totalLegendaries: number;
   totalCardsObtained: number;
   currentStreak: number;
+  totalTrades: number;
 };
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
@@ -98,5 +99,26 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'Obtiens 500 cartes au total',
     icon: '📚',
     condition: (s) => s.totalCardsObtained >= 500,
+  },
+  {
+    id: 'first_trade',
+    name: 'Premier echange',
+    description: 'Realise ton premier echange',
+    icon: '🤝',
+    condition: (s) => s.totalTrades >= 1,
+  },
+  {
+    id: 'trades_25',
+    name: 'Negociateur',
+    description: 'Realise 25 echanges',
+    icon: '💼',
+    condition: (s) => s.totalTrades >= 25,
+  },
+  {
+    id: 'trades_100',
+    name: 'Maitre du marche',
+    description: 'Realise 100 echanges',
+    icon: '🏅',
+    condition: (s) => s.totalTrades >= 100,
   },
 ];

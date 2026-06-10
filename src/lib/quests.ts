@@ -1,6 +1,13 @@
+import { ObjectId } from 'bson';
 import { prisma } from '@/lib/prisma';
 import { QUEST_DEFINITIONS, QuestDefinition } from '@/data/quests';
 import { FALLBACK_QUESTS } from '@/data/fallbackQuests';
+
+interface MongoUpdateResult {
+  n: number;
+  nModified: number;
+  ok: number;
+}
 
 export type QuestWithProgress = QuestDefinition & {
   progress: number;
@@ -14,6 +21,7 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
     select: {
       totalBoostersOpened: true,
       totalRecycles: true,
+      totalTrades: true,
       badges: true,
     },
   });
@@ -32,7 +40,7 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
     const existing = questMap.get(def.id);
     const progress = existing?.progress ?? 0;
     const currentCount = await getCurrentCount(
-      { totalBoostersOpened: user.totalBoostersOpened, totalRecycles: user.totalRecycles },
+      { totalBoostersOpened: user.totalBoostersOpened, totalRecycles: user.totalRecycles, totalTrades: user.totalTrades },
       def.type,
     );
 
@@ -50,7 +58,7 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
 }
 
 async function getCurrentCount(
-  user: { totalBoostersOpened: number; totalRecycles: number },
+  user: { totalBoostersOpened: number; totalRecycles: number; totalTrades: number },
   type: string,
 ): Promise<number> {
   switch (type) {
@@ -58,6 +66,8 @@ async function getCurrentCount(
       return user.totalBoostersOpened;
     case 'recycle_count':
       return user.totalRecycles;
+    case 'trade_count':
+      return user.totalTrades;
     default:
       return 0;
   }
@@ -87,26 +97,38 @@ export async function claimQuestReward(
   return { success: true, rewardBoosters: quest.rewardBoosters };
 }
 
-async function atomicUpdateOrCreate(
+async function updateSingleQuest(
   userId: string,
   questId: string,
   target: number,
   increment: number,
 ): Promise<void> {
-  const { count } = await prisma.userQuest.updateMany({
-    where: {
-      userId,
-      questId,
-      completed: false,
-      rewardClaimed: false,
-    },
-    data: { progress: { increment } },
-  });
+  const userObjectId = new ObjectId(userId);
 
-  if (count === 0) {
+  // Atomic $inc via raw MongoDB command — bypasses Prisma's ObjectId conversion
+  // to avoid the string-vs-ObjectId mismatch that causes silent 0-matches
+  const result: MongoUpdateResult = (await prisma.$runCommandRaw({
+    update: 'UserQuest',
+    updates: [
+      {
+        q: {
+          userId: userObjectId,
+          questId,
+          completed: false,
+          rewardClaimed: false,
+        },
+        u: { $inc: { progress: increment } },
+      },
+    ],
+  })) as unknown as MongoUpdateResult;
+
+  // result.n = number of documents matched by the query
+  if (!result || result.n === 0) {
+    // No non-completed quest found — check if a record exists at all
     const existing = await prisma.userQuest.findUnique({
       where: { userId_questId: { userId, questId } },
     });
+
     if (!existing) {
       await prisma.userQuest.create({
         data: {
@@ -117,21 +139,24 @@ async function atomicUpdateOrCreate(
           completed: false,
         },
       });
-      console.log(`[quests] created ${questId} progress=${increment}`);
+      console.log(`[quests] created ${questId} +${increment}`);
     } else {
       console.log(`[quests] ${questId} skipped (already completed/claimed)`);
     }
   } else {
-    console.log(`[quests] ${questId} +${increment}`);
-    await prisma.userQuest.updateMany({
-      where: {
-        userId,
-        questId,
-        progress: { gte: target },
-        completed: false,
-      },
-      data: { completed: true },
+    // Increment succeeded — check if now completed
+    const updated = await prisma.userQuest.findUnique({
+      where: { userId_questId: { userId, questId } },
     });
+    if (updated && updated.progress >= target && !updated.completed) {
+      await prisma.userQuest.update({
+        where: { id: updated.id },
+        data: { completed: true },
+      });
+      console.log(`[quests] ${questId} COMPLETED`);
+    } else {
+      console.log(`[quests] ${questId} +${increment} (${updated?.progress}/${target})`);
+    }
   }
 }
 
@@ -140,20 +165,18 @@ export async function updateQuestProgress(
   type: string,
   increment: number,
 ): Promise<void> {
-  console.log(`[updateQuestProgress] userId=${userId} type=${type} increment=${increment}`);
+  console.log(`[updateQuestProgress] userId=${userId} type=${type} inc=${increment}`);
 
+  // 1. Permanent QUEST_DEFINITIONS
   const matchingDefs = QUEST_DEFINITIONS.filter((d) => d.type === type);
-  console.log(`[updateQuestProgress] defs:`, matchingDefs.map(d => d.id));
-
   for (const def of matchingDefs) {
-    await atomicUpdateOrCreate(userId, def.id, def.target, increment);
+    await updateSingleQuest(userId, def.id, def.target, increment);
   }
 
-  const fallbackMatching = FALLBACK_QUESTS.filter((q) => q.type === type);
-  console.log(`[updateQuestProgress] fallback:`, fallbackMatching.map(q => q.id));
-
-  for (const fq of fallbackMatching) {
-    await atomicUpdateOrCreate(userId, fq.id, fq.target, increment);
+  // 2. Daily / fallback quests
+  const matchingFallback = FALLBACK_QUESTS.filter((q) => q.type === type);
+  for (const fq of matchingFallback) {
+    await updateSingleQuest(userId, fq.id, fq.target, increment);
   }
 
   console.log(`[updateQuestProgress] done`);

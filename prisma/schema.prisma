@@ -48,10 +48,11 @@ model User {
   tokens          Int        @default(0)
 
   // Total stats for badges
-  totalRecycles   Int        @default(0)
-  totalBoostersOpened Int   @default(0)
-  totalLegendaries     Int  @default(0)
-  totalCardsObtained   Int  @default(0)
+  totalRecycles        Int     @default(0)
+  totalBoostersOpened  Int     @default(0)
+  totalLegendaries     Int     @default(0)
+  totalCardsObtained   Int     @default(0)
+  totalTrades          Int     @default(0)
 
   // Achievements & badges
   badges          Json       @default("[]")

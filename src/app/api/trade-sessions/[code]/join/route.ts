@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { MAX_TRADES_PER_DAY } from '@/lib/quota';
 import { ALL_CLUB_CARDS } from '@/data/clubCards';
+import { updateQuestProgress } from '@/lib/quests';
+import { checkAndUnlockBadges } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -216,15 +218,21 @@ export async function POST(
         });
       }
 
-      // Increment trade counts
+      // Increment trade counts (daily + lifetime)
       await tx.user.update({
         where: { id: session.creatorId },
-        data: { tradesMadeToday: { increment: 1 } },
+        data: {
+          tradesMadeToday: { increment: 1 },
+          totalTrades: { increment: 1 },
+        },
       });
 
       await tx.user.update({
         where: { id: joinerId },
-        data: { tradesMadeToday: { increment: 1 } },
+        data: {
+          tradesMadeToday: { increment: 1 },
+          totalTrades: { increment: 1 },
+        },
       });
 
       // Mark session COMPLETED
@@ -245,10 +253,19 @@ export async function POST(
       });
 
       return {
+        creatorId: session.creatorId,
         offeredCard: { id: offeredCard.id, firstName: offeredCard.firstName, lastName: offeredCard.lastName },
         givenCard: { id: givenCard.id, firstName: givenCard.firstName, lastName: givenCard.lastName },
       };
     });
+
+    // Fire-and-forget quest + badge updates (outside transaction)
+    Promise.all([
+      updateQuestProgress(joinerId, 'trade_count', 1),
+      updateQuestProgress(result.creatorId, 'trade_count', 1),
+      checkAndUnlockBadges(joinerId),
+      checkAndUnlockBadges(result.creatorId),
+    ]).catch((e) => console.error('[trade] quest/badge error:', e));
 
     return NextResponse.json({ success: true, ...result }, { status: 200 });
   } catch (error: unknown) {

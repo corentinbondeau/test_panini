@@ -9,6 +9,7 @@ import Image from 'next/image';
 import AvatarBorder from '@/components/AvatarBorder';
 import { ShowcaseEditor } from '@/components/showcase/ShowcaseEditor';
 import { DailyQuestsWidget } from '@/components/quests/DailyQuestsWidget';
+import { useBadgeStore } from '@/store/badgeStore';
 import Link from 'next/link';
 import { Eye, EyeOff, Package, Edit3, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './page.module.css';
@@ -106,7 +107,9 @@ export default function ComptePage() {
   }, [token]);
 
   // Fetch badges
-  useEffect(() => {
+  const badgeRefreshTrigger = useBadgeStore((s) => s.refreshTrigger);
+
+  const fetchBadges = useCallback(() => {
     if (!token) return;
     setBadgesLoading(true);
     fetch('/api/badges', {
@@ -117,6 +120,16 @@ export default function ComptePage() {
       .catch(() => {})
       .finally(() => setBadgesLoading(false));
   }, [token]);
+
+  useEffect(() => {
+    fetchBadges();
+  }, [fetchBadges]);
+
+  useEffect(() => {
+    if (badgeRefreshTrigger) {
+      fetchBadges();
+    }
+  }, [badgeRefreshTrigger, fetchBadges]);
 
   // Check push subscription status on mount + browser permission
   useEffect(() => {
