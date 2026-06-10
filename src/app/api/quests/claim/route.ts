@@ -23,6 +23,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'questId requis' }, { status: 400 });
     }
 
+    // Handle fallback quests (not in DB)
+    if (questId.startsWith('fallback_')) {
+      await prisma.user.update({
+        where: { id: decoded.userId },
+        data: { tokens: { increment: 5 } },
+      });
+      return NextResponse.json({
+        success: true,
+        rewardTokens: 5,
+      });
+    }
+
     const userQuest = await prisma.userQuest.findUnique({
       where: { userId_questId: { userId: decoded.userId, questId } },
     });
