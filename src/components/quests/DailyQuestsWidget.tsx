@@ -8,7 +8,7 @@ import { useQuestStore } from '@/store/questStore';
 
 type Quest = {
   id: string;
-  title: string;
+  title?: string;
   description: string;
   type: string;
   target: number;
@@ -21,7 +21,7 @@ type Quest = {
 };
 
 export function DailyQuestsWidget() {
-  const { token } = useAuthStore();
+  const { user, token, setUser } = useAuthStore();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -71,6 +71,10 @@ export function DailyQuestsWidget() {
           q.id === questId ? { ...q, rewardClaimed: true } : q,
         ),
       );
+      // Update global token balance in auth store so navbar reflects the change
+      if (typeof data.tokens === 'number' && user) {
+        setUser({ ...user, tokens: data.tokens });
+      }
     } catch {
       // silent
     } finally {
