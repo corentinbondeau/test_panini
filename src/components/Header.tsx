@@ -24,10 +24,24 @@ export function Header() {
           <Image src="/logo-club.png" alt="ECC" width={28} height={28} className={styles.logoImg} />
           ECC Panini
         </Link>
-        <ThemeToggle />
-        <button className={styles.burger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
+        <div className={styles.headerActions}>
+          <TokenBalance />
+          <ThemeToggle />
+          {isInitialized && (
+            user ? (
+              <Link href="/compte" className={styles.authLink} onClick={() => setMenuOpen(false)}>
+                Mon compte
+              </Link>
+            ) : (
+              <Link href="/auth" className={styles.authLink} onClick={() => setMenuOpen(false)}>
+                Connexion
+              </Link>
+            )
+          )}
+          <button className={styles.burger} onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
         <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
           <Link href="/" onClick={() => setMenuOpen(false)}>Accueil</Link>
           <Link href="/booster" onClick={() => setMenuOpen(false)}>Booster</Link>
@@ -43,18 +57,6 @@ export function Header() {
               <Link href="/admin/stats" onClick={() => setMenuOpen(false)}>Statistiques</Link>
               <Link href="/admin/add-card" onClick={() => setMenuOpen(false)}>Ajouter une carte</Link>
             </>
-          )}
-          <TokenBalance />
-          {isInitialized && (
-            user ? (
-              <Link href="/compte" className={styles.authLink} onClick={() => setMenuOpen(false)}>
-                Mon compte
-              </Link>
-            ) : (
-              <Link href="/auth" className={styles.authLink} onClick={() => setMenuOpen(false)}>
-                Connexion
-              </Link>
-            )
           )}
         </nav>
       </div>
