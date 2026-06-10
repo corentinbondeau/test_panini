@@ -70,6 +70,19 @@
 .shiny {
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  animation: rainbowBorder 3s linear infinite;
+}
+
+@keyframes rainbowBorder {
+  0% { border-color: #ff6b6b; box-shadow: 0 0 12px rgba(255,107,107,0.3), inset 0 0 8px rgba(255,107,107,0.1); }
+  16% { border-color: #ffd93d; box-shadow: 0 0 12px rgba(255,217,61,0.3), inset 0 0 8px rgba(255,217,61,0.1); }
+  33% { border-color: #6bcb77; box-shadow: 0 0 12px rgba(107,203,119,0.3), inset 0 0 8px rgba(107,203,119,0.1); }
+  50% { border-color: #4d96ff; box-shadow: 0 0 12px rgba(77,150,255,0.3), inset 0 0 8px rgba(77,150,255,0.1); }
+  66% { border-color: #9b59b6; box-shadow: 0 0 12px rgba(155,89,182,0.3), inset 0 0 8px rgba(155,89,182,0.1); }
+  83% { border-color: #ff6b6b; box-shadow: 0 0 12px rgba(255,107,107,0.3), inset 0 0 8px rgba(255,107,107,0.1); }
+  100% { border-color: #ff6b6b; box-shadow: 0 0 12px rgba(255,107,107,0.3), inset 0 0 8px rgba(255,107,107,0.1); }
 }
 
 .shiny::before {
@@ -80,11 +93,11 @@
   pointer-events: none;
   background: linear-gradient(
     135deg,
-    rgba(255, 0, 150, 0.15) 0%,
-    rgba(0, 255, 200, 0.15) 25%,
-    rgba(255, 255, 0, 0.15) 50%,
-    rgba(0, 150, 255, 0.15) 75%,
-    rgba(255, 0, 150, 0.15) 100%
+    rgba(255, 0, 150, 0.2) 0%,
+    rgba(0, 255, 200, 0.2) 25%,
+    rgba(255, 255, 0, 0.2) 50%,
+    rgba(0, 150, 255, 0.2) 75%,
+    rgba(255, 0, 150, 0.2) 100%
   );
   background-size: 300% 300%;
   animation: foilShift 4s ease-in-out infinite;
@@ -101,9 +114,9 @@
   background: linear-gradient(
     105deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.2) 45%,
-    rgba(255, 255, 255, 0.35) 50%,
-    rgba(255, 255, 255, 0.2) 55%,
+    rgba(255, 255, 255, 0.25) 45%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.25) 55%,
     transparent 70%
   );
   background-size: 300% 100%;
@@ -117,6 +130,12 @@
   50% { background-position: 100% 100%; }
   75% { background-position: 0% 100%; }
   100% { background-position: 0% 0%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  60% { background-position: -200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* --- Photo container (3:4 portrait) --- */
