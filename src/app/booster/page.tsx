@@ -294,15 +294,7 @@ export default function BoosterPage() {
             onClick={phase === "idle" && hasCards && !limitReached ? handleOpen : undefined}
             // 3D tilt on hover (idle only)
             whileHover={phase === "idle" ? { rotateX: 5, rotateY: 10, scale: 1.03 } : undefined}
-            // Drag down gesture to tear open
-            drag={phase === "idle" ? "y" : false}
-            dragConstraints={{ top: -50, bottom: 0 }}
-            dragElastic={0.3}
-            onDragEnd={(_, info) => {
-              if (info.offset.y < -30 && hasCards && !limitReached) {
-                handleOpen();
-              }
-            }}
+
           >
             <div className={styles.pack3dInner}>
               <motion.img
@@ -311,15 +303,7 @@ export default function BoosterPage() {
                 className={styles.packBackImg}
                 style={{ backfaceVisibility: 'hidden' }}
               />
-              {phase === "idle" && (
-                <motion.div
-                  className={styles.dragHint}
-                  animate={{ y: [0, 6, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <span className={styles.dragHintText}>Tirer vers le bas ↓</span>
-                </motion.div>
-              )}
+
             </div>
           </motion.div>
           {isMassOpen && phase === "loading" && (
