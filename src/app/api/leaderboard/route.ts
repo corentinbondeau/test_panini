@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { S25_26_CARDS } from '@/data/clubCards';
+import { S25_26_CARDS, ALL_CLUB_CARDS } from '@/data/clubCards';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +14,8 @@ export async function GET() {
         email: true,
         avatar: true,
         tokens: true,
+        totalCardsObtained: true,
+        showcase: true,
       },
     });
 
@@ -25,6 +27,7 @@ export async function GET() {
     });
 
     const uniqueCardTotal = S25_26_CARDS.length;
+    const cardMap = new Map(ALL_CLUB_CARDS.map((c) => [c.id, c]));
     const userProgress = new Map<string, { unique: number; total: number; percent: number }>();
 
     for (const col of collections) {
@@ -38,6 +41,7 @@ export async function GET() {
       .filter((u) => userProgress.has(u.id))
       .map((u) => {
         const progress = userProgress.get(u.id)!;
+        const showcaseIds = (u.showcase as string[]) || [];
         return {
           userId: u.id,
           firstName: u.firstName,
@@ -45,6 +49,11 @@ export async function GET() {
           email: u.email,
           avatar: u.avatar,
           tokens: u.tokens,
+          totalCardsObtained: u.totalCardsObtained,
+          showcase: showcaseIds.slice(0, 5).map((id) => {
+            const card = cardMap.get(id);
+            return card ? { id: card.id, firstName: card.firstName, lastName: card.lastName, photo: card.photo, rarity: card.rarity } : null;
+          }).filter(Boolean),
           ...progress,
         };
       })

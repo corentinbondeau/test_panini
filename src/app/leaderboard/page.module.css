@@ -1,3 +1,9 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
 .note {
   color: var(--text-soft);
   margin-bottom: 16px;
@@ -26,8 +32,9 @@
   gap: 12px;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(11, 31, 63, 0.6);
+  background: linear-gradient(180deg, var(--club-blue-800), var(--club-blue-900));
   border: 1px solid var(--club-blue-700);
+  flex-wrap: wrap;
 }
 
 .rank {
@@ -38,8 +45,8 @@
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -63,7 +70,7 @@
 
 .info {
   flex: 1;
-  min-width: 0;
+  min-width: 120px;
 }
 
 .name {
@@ -97,4 +104,29 @@
 .tokens {
   font-size: 0.8rem;
   color: var(--text-soft);
+}
+
+.showcase {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  padding-top: 8px;
+  border-top: 1px solid var(--club-blue-700);
+  margin-top: 4px;
+}
+
+.showcaseCard {
+  width: 48px;
+  height: 36px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--club-blue-700);
+  flex-shrink: 0;
+}
+
+.showcaseImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
