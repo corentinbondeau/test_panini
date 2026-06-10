@@ -51,9 +51,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cette carte est déjà shiny' }, { status: 400 });
     }
 
-    // Deduct 3 copies
-    cards[cardId] = qty - 3;
-    if (cards[cardId] <= 0) delete cards[cardId];
+    // Deduct 2 copies, keep the 3rd and upgrade it to shiny
+    cards[cardId] = qty - 2;
 
     // Add to shiny set
     shinyCards.add(cardId);
