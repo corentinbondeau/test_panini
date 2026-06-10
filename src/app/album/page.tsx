@@ -287,7 +287,13 @@ export default function AlbumPage() {
           <div className={styles.grid}>
             {visibleCards.map((card) => (
               <div key={card.id}>
-                <CardFlip card={card} quantity={quantities[card.id] ?? 0} isShiny={shinyCards.includes(card.id)} dateObtained={cardDates[card.id] || null} />
+                <CardFlip
+                  card={card}
+                  quantity={quantities[card.id] ?? 0}
+                  isShiny={shinyCards.includes(card.id)}
+                  dateObtained={cardDates[card.id] || null}
+                  onCardClick={() => setSelectedCard(card)}
+                />
               </div>
             ))}
           </div>
@@ -306,6 +312,8 @@ export default function AlbumPage() {
           <CardModal
             card={selectedCard}
             quantity={quantities[selectedCard.id] ?? 0}
+            isShiny={shinyCards.includes(selectedCard.id)}
+            dateObtained={cardDates[selectedCard.id] || null}
             onClose={() => setSelectedCard(null)}
           />
         )}

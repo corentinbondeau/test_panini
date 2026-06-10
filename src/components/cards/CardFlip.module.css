@@ -88,3 +88,21 @@
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.3);
 }
+
+.backDetailBtn {
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.backDetailBtn:hover {
+  opacity: 0.85;
+}

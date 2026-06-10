@@ -10,9 +10,10 @@ type CardFlipProps = {
   quantity: number;
   isShiny?: boolean;
   dateObtained?: string | null;
+  onCardClick?: () => void;
 };
 
-export function CardFlip({ card, quantity, isShiny, dateObtained }: CardFlipProps) {
+export function CardFlip({ card, quantity, isShiny, dateObtained, onCardClick }: CardFlipProps) {
   const [flipped, setFlipped] = useState(false);
 
   const description = {
@@ -29,10 +30,18 @@ export function CardFlip({ card, quantity, isShiny, dateObtained }: CardFlipProp
       })
     : null;
 
+  const handleClick = () => {
+    if (flipped) {
+      if (onCardClick) onCardClick();
+    } else {
+      setFlipped(true);
+    }
+  };
+
   return (
     <div
       className={`${styles.flipContainer} ${flipped ? styles.flipped : ''}`}
-      onClick={() => setFlipped(!flipped)}
+      onClick={handleClick}
     >
       <div className={styles.flipInner}>
         <div className={styles.flipFront}>
@@ -46,6 +55,14 @@ export function CardFlip({ card, quantity, isShiny, dateObtained }: CardFlipProp
             <p className={styles.backDesc}>{description}</p>
             {obtainedDate && (
               <p className={styles.backDate}>Obtenue le {obtainedDate}</p>
+            )}
+            {onCardClick && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onCardClick(); }}
+                className={styles.backDetailBtn}
+              >
+                Voir les détails
+              </button>
             )}
             <p className={styles.backHint}>Cliquez pour retourner</p>
           </div>
