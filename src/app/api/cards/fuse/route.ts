@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
+import { checkAndUnlockBadges } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,11 +66,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check for newly unlocked badges
+    const newBadges = await checkAndUnlockBadges(decoded.userId);
+
     return NextResponse.json({
       success: true,
       cardId,
       quantities: cards,
       shinyCards: Array.from(shinyCards),
+      newBadges,
     });
   } catch (error) {
     console.error('Fuse error:', error);
