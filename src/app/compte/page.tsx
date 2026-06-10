@@ -622,7 +622,7 @@ export default function ComptePage() {
                       })}
                     </span>
                   </div>
-                  <div className={styles.historyCardsRow}>
+                  <div className={styles.historyCardsGrid}>
                     {displayCards.map((card) => (
                       <div key={card.id} className={styles.historyCardItem}>
                         <Image src={card.photo} alt={card.firstName} width={50} height={70}

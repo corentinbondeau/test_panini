@@ -352,16 +352,25 @@
   color: var(--text-soft);
 }
 
-.historyCardsRow {
-  display: flex;
+.historyCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+}
+
+@media (min-width: 640px) {
+  .historyCardsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .historyCardsGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 .historyCardItem {
-  flex-shrink: 0;
-  width: 60px;
   text-align: center;
 }
 
