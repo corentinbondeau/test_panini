@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
+import { checkAndUnlockBadges } from '@/lib/badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,7 +60,6 @@ export async function POST(request: NextRequest) {
       });
 
       // Find the seller's collection to deduct the card
-      // Find any collection that has this card for the seller
       const sellerCollections = await tx.userCollection.findMany({
         where: { userId: listing.sellerId },
       });
@@ -119,7 +119,14 @@ export async function POST(request: NextRequest) {
       return { success: true, cardId: listing.cardId, price: listing.price };
     });
 
-    return NextResponse.json(result);
+    // Update buyer stats and check badges
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { totalCardsObtained: { increment: 1 } },
+    });
+    const newBadges = await checkAndUnlockBadges(decoded.userId);
+
+    return NextResponse.json({ ...result, newBadges });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur lors de l\'achat';
     return NextResponse.json({ error: message }, { status: 400 });
