@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins, RotateCcw, CheckCircle2, Circle, Sparkles } from 'lucide-react';
+import { Coins, CheckCircle2, Circle, Sparkles } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 type Quest = {
@@ -69,13 +69,11 @@ export function DailyQuestsWidget() {
   };
 
   const pct = (q: Quest) => Math.min(100, Math.round((q.progress / q.target) * 100));
-  const completedCount = quests.filter((q) => q.rewardClaimed).length;
-  const totalCount = quests.length;
 
   if (loading) {
     return (
       <div className="rounded-xl border border-[var(--club-blue-700)] bg-gradient-to-b from-[var(--club-blue-800)] to-[var(--club-blue-900)] p-4">
-        <div className="text-center text-sm text-[var(--text-soft)]">Chargement des défis...</div>
+        <div className="text-center text-sm text-[var(--text-soft)]">Chargement des defis...</div>
       </div>
     );
   }
@@ -85,9 +83,9 @@ export function DailyQuestsWidget() {
       <div className="rounded-xl border border-[var(--club-blue-700)] bg-gradient-to-b from-[var(--club-blue-800)] to-[var(--club-blue-900)] p-4">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles size={18} className="text-[var(--club-yellow-500)]" />
-          <h3 className="text-sm font-bold text-[var(--club-yellow-500)] m-0">Mes Défis du Jour</h3>
+          <h3 className="text-sm font-bold text-[var(--club-yellow-500)] m-0">Defis du Jour</h3>
         </div>
-        <p className="text-xs text-[var(--text-soft)] m-0">Aucun défi disponible aujourd&apos;hui. Reviens demain !</p>
+        <p className="text-xs text-[var(--text-soft)] m-0">Aucun defi disponible aujourd&apos;hui. Reviens demain !</p>
       </div>
     );
   }
@@ -98,28 +96,10 @@ export function DailyQuestsWidget() {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-xl border border-[var(--club-blue-700)] bg-gradient-to-b from-[var(--club-blue-800)] to-[var(--club-blue-900)] p-4"
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-[var(--club-yellow-500)]" />
-          <h3 className="text-sm font-bold text-[var(--club-yellow-500)] m-0">Mes Défis du Jour</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--text-soft)]">{completedCount}/{totalCount}</span>
-          <button onClick={fetchQuests} className="p-1 rounded-md hover:bg-[var(--club-blue-700)] transition-colors" aria-label="Actualiser">
-            <RotateCcw size={14} className="text-[var(--text-soft)]" />
-          </button>
-        </div>
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles size={18} className="text-[var(--club-yellow-500)]" />
+        <h3 className="text-sm font-bold text-[var(--club-yellow-500)] m-0">Defis du Jour</h3>
       </div>
-
-      {completedCount === totalCount && totalCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="mb-3 text-center text-xs text-green-400 font-semibold bg-green-500/10 rounded-lg py-2 px-3"
-        >
-          Tous les défis du jour sont complétés ! 🎉
-        </motion.div>
-      )}
 
       <div className="flex flex-col gap-2">
         <AnimatePresence mode="popLayout">
@@ -150,7 +130,7 @@ export function DailyQuestsWidget() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[var(--text-main)] m-0 truncate">{q.title}</p>
+                <p className="text-xs text-[var(--text-main)] m-0">{q.description}</p>
                 <p className="text-[10px] text-[var(--text-soft)] m-0">{q.progress}/{q.target}</p>
                 <div className="h-1.5 bg-[var(--club-blue-700)] rounded-full mt-1 overflow-hidden">
                   <div
@@ -168,14 +148,14 @@ export function DailyQuestsWidget() {
                   <span>5</span>
                 </div>
                 {q.rewardClaimed ? (
-                  <span className="text-[10px] text-green-400 font-semibold">Réclamée</span>
+                  <span className="text-[10px] text-green-400 font-semibold">Reclamee</span>
                 ) : q.completed ? (
                   <button
                     onClick={() => handleClaim(q.id)}
                     disabled={claimingId === q.id}
                     className="text-[10px] font-bold bg-[var(--club-yellow-500)] text-[var(--club-blue-950)] px-2.5 py-1 rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 whitespace-nowrap"
                   >
-                    {claimingId === q.id ? '...' : 'Réclamer'}
+                    {claimingId === q.id ? '...' : 'Reclamer'}
                   </button>
                 ) : (
                   <span className="text-[10px] text-[var(--text-soft)] font-semibold">{pct(q)}%</span>
