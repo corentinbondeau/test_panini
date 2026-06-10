@@ -126,9 +126,17 @@ const QUEST_POOL: Array<{ key: string; title: string; description: string; targe
   { key: 'charm_buy_3', title: 'Collection d\'amulettes', description: 'Achète 3 amulettes de chance', target: 3, type: 'CHARM_BUY', params: {} },
   { key: 'charm_legendary', title: 'Amulette légendaire', description: 'Obtiens une légendaire avec une amulette active', target: 1, type: 'CHARM_LEGENDARY', params: {} },
 
-  // === MISCELLANEOUS QUESTS (2) ===
+  // === MISCELLANEOUS QUESTS (10) ===
   { key: 'badge_unlock', title: 'Badge de collection', description: 'Débloque 1 badge', target: 1, type: 'BADGE_UNLOCK', params: {} },
   { key: 'badge_unlock_3', title: 'Chasseur de badges', description: 'Débloque 3 badges', target: 3, type: 'BADGE_UNLOCK', params: {} },
+  { key: 'badge_unlock_5', title: 'Collectionneur de badges', description: 'Débloque 5 badges', target: 5, type: 'BADGE_UNLOCK', params: {} },
+  { key: 'login_streak_3', title: 'Fidèle', description: 'Connecte-toi 3 jours de suite', target: 3, type: 'STREAK_DAYS', params: {} },
+  { key: 'login_hour_specific', title: 'À la bonne heure', description: 'Connecte-toi entre 18h et 20h', target: 1, type: 'TIME_LOGIN', params: { hourStart: '18', hourEnd: '20' } },
+  { key: 'obtain_consecutive_legendary', title: 'Doublé légendaire', description: 'Obtiens 2 légendaires dans la même journée', target: 2, type: 'OBTAIN_RARITY', params: { rarity: 'LEGENDAIRE', sameDay: 1 } },
+  { key: 'album_complete_percent_25', title: 'Quart de l\'album', description: 'Atteins 25% de l\'album complet', target: 25, type: 'ALBUM_PERCENT', params: {} },
+  { key: 'album_complete_percent_50', title: 'Demi-album', description: 'Atteins 50% de l\'album complet', target: 50, type: 'ALBUM_PERCENT', params: {} },
+  { key: 'album_complete_percent_75', title: 'Presque complet !', description: 'Atteins 75% de l\'album complet', target: 75, type: 'ALBUM_PERCENT', params: {} },
+  { key: 'album_complete_100', title: 'Album complété !', description: 'Complète l\'album à 100%', target: 100, type: 'ALBUM_PERCENT', params: {} },
 ];
 
 async function main() {
