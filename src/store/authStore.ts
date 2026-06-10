@@ -11,6 +11,12 @@ export interface User {
   createdAt?: string;
   isPublicAlbum?: boolean;
   tokens?: number;
+  totalCardsObtained?: number;
+  showcase?: string[];
+  unlockedCardBacks?: string[];
+  activeCardBack?: string;
+  charms?: number;
+  dust?: number;
 }
 
 interface AuthStore {

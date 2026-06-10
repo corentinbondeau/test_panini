@@ -46,6 +46,13 @@ export async function PUT(request: NextRequest) {
         role: true,
         createdAt: true,
         isPublicAlbum: true,
+        tokens: true,
+        totalCardsObtained: true,
+        showcase: true,
+        unlockedCardBacks: true,
+        activeCardBack: true,
+        charms: true,
+        dust: true,
       },
     });
 
