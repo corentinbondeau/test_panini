@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const collectionSlug = searchParams.get('collectionId') || DEFAULT_COLLECTION_ID;
+    const searchQuery = searchParams.get('search') || '';
 
     const listings = await prisma.marketplaceListing.findMany({
       where: { status: 'active' },
@@ -35,10 +36,20 @@ export async function GET(request: NextRequest) {
     const cards = collectionSlug === 'all' ? ALL_CLUB_CARDS : getCardsByCollection(collectionSlug);
     const cardMap = new Map(cards.map((c) => [c.id, c]));
 
-    const data = listings.map((l) => ({
+    let data = listings.map((l) => ({
       ...l,
       card: cardMap.get(l.cardId) || null,
     }));
+
+    // Filter by search query on card name (case-insensitive)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      data = data.filter((item) => {
+        if (!item.card) return false;
+        const fullName = `${item.card.firstName} ${item.card.lastName}`.toLowerCase();
+        return fullName.includes(q);
+      });
+    }
 
     return NextResponse.json({ listings: data });
   } catch (error) {

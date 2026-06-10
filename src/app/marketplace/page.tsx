@@ -7,6 +7,7 @@ import { ALL_CLUB_CARDS } from '@/data/clubCards';
 import { CardRarity } from '@/data/cards';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 import styles from './page.module.css';
 
 type Listing = {
@@ -31,6 +32,7 @@ export default function MarketplacePage() {
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [search, setSearch] = useState('');
 
   // Sell form
   const [showSellForm, setShowSellForm] = useState(false);
@@ -42,11 +44,14 @@ export default function MarketplacePage() {
     checkAuth().finally(() => setIsInitialized(true));
   }, [checkAuth]);
 
-  useEffect(() => {
+  const fetchListings = () => {
     if (!token) return;
     setLoading(true);
     setError('');
-    fetch('/api/marketplace', {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set('search', search.trim());
+    const url = `/api/marketplace${params.toString() ? `?${params.toString()}` : ''}`;
+    fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -58,7 +63,11 @@ export default function MarketplacePage() {
         setError('Erreur de chargement');
         setLoading(false);
       });
-  }, [token]);
+  };
+
+  useEffect(() => {
+    fetchListings();
+  }, [token, search]);
 
   const doublesCards = useMemo(
     () => ALL_CLUB_CARDS.filter((c) => (quantities[c.id] ?? 0) >= 2),
@@ -182,10 +191,24 @@ export default function MarketplacePage() {
         </form>
       )}
 
+      {/* Search bar */}
+      <div className={styles.searchWrapper}>
+        <Search size={16} className={styles.searchIcon} />
+        <input
+          type="text"
+          placeholder="Rechercher une carte par nom..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className={styles.searchInput}
+        />
+      </div>
+
       {loading ? (
         <p className={styles.loading}>Chargement du marché...</p>
       ) : listings.length === 0 ? (
-        <p className={styles.empty}>Aucune carte en vente pour le moment.</p>
+        <p className={styles.empty}>
+          {search.trim() ? 'Aucune carte trouvée pour ce nom.' : 'Aucune carte en vente pour le moment.'}
+        </p>
       ) : (
         <div className={styles.grid}>
           {listings.map((listing) => (
