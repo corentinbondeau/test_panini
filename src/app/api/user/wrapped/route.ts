@@ -16,17 +16,31 @@ export async function GET(req: Request) {
     const logs = await prisma.boosterLog.findMany({ where: { userId: decoded.userId, createdAt: { gte: since } } });
 
     let biggestRarity = 'COMMUNE';
+    let totalLegendaries = 0;
     const rarityRank: Record<string, number> = { COMMUNE: 1, RARE: 2, LEGENDAIRE: 3 };
     for (const l of logs) {
       const counts = (l.rarityCounts as Record<string, number>) || {};
       for (const r of Object.keys(counts)) {
         if (rarityRank[r] > rarityRank[biggestRarity]) biggestRarity = r;
+        if (r === 'LEGENDAIRE') totalLegendaries += counts[r];
       }
     }
 
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
 
-    return NextResponse.json({ ok: true, data: { boostersOpened: boosterCount, biggestDrop: biggestRarity, totalRecycles: user?.totalRecycles ?? 0, streakMax: user?.currentStreak ?? 0 } });
+    return NextResponse.json({
+      ok: true,
+      data: {
+        boostersOpened: boosterCount,
+        biggestDrop: biggestRarity,
+        totalRecycles: user?.totalRecycles ?? 0,
+        streakMax: user?.currentStreak ?? 0,
+        totalLegendaries,
+        totalCards: user?.totalCardsObtained ?? 0,
+        doublesRecycled: user?.totalRecycles ?? 0,
+        tokensEarned: user?.tokens ?? 0,
+      }
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
