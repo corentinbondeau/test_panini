@@ -55,6 +55,85 @@
   font-weight: 500;
 }
 
+/* Charm section */
+.charmSection {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--club-blue-700);
+  background: var(--club-blue-800);
+}
+
+.charmInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.charmIcon {
+  font-size: 1.2rem;
+}
+
+.charmCount {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.charmActiveBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.charmActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.charmBtn {
+  background: var(--club-blue-700);
+  color: var(--text-main);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.charmBtn:hover {
+  background: var(--club-blue-600);
+}
+
+.charmBtnActive {
+  background: var(--club-yellow-500);
+  color: var(--club-blue-950);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.charmBtnActive:hover {
+  opacity: 0.85;
+}
+
+.charmMsg {
+  margin: 6px 0 0;
+  font-size: 0.7rem;
+  color: var(--club-yellow-500);
+}
+
 @keyframes duplicateGlow {
   from {
     box-shadow: 0 0 0 rgba(255, 212, 71, 0.15);

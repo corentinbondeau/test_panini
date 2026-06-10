@@ -17,6 +17,7 @@ export interface User {
   activeCardBack?: string;
   charms?: number;
   dust?: number;
+  charmReserved?: boolean;
 }
 
 interface AuthStore {

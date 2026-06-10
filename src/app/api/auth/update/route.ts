@@ -53,6 +53,7 @@ export async function PUT(request: NextRequest) {
         activeCardBack: true,
         charms: true,
         dust: true,
+        charmReserved: true,
       },
     });
 

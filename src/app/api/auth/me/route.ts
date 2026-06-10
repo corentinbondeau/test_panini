@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         activeCardBack: true,
         charms: true,
         dust: true,
+        charmReserved: true,
       },
     });
 
