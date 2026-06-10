@@ -9,7 +9,6 @@ import { RarityBadge } from "@/components/cards/RarityBadge";
 import { useCollectionSelectors, useCollectionStore } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
 import { CardRarity } from "@/data/cards";
-import { ALL_CLUB_CARDS } from "@/data/clubCards";
 import styles from "./page.module.css";
 
 const RECYCLE_RATIOS: Record<string, { required: number; label: string }> = {
