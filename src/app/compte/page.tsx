@@ -1,14 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import Image from 'next/image';
 import AvatarBorder from '@/components/AvatarBorder';
 import { ShowcaseEditor } from '@/components/showcase/ShowcaseEditor';
+import { DailyQuestsWidget } from '@/components/quests/DailyQuestsWidget';
 import Link from 'next/link';
-import { Eye, EyeOff, Package, Edit3, BarChart3 } from 'lucide-react';
+import { Eye, EyeOff, Package, Edit3, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './page.module.css';
 
 interface BoosterHistoryEntry {
@@ -55,6 +57,20 @@ export default function ComptePage() {
   // Booster history state
   const [boosterHistory, setBoosterHistory] = useState<BoosterHistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
+
+  // Badges state
+  const [userBadges, setUserBadges] = useState<Array<{ id: string; name: string; description: string; icon: string; unlocked: boolean }>>([]);
+  const [badgesLoading, setBadgesLoading] = useState(false);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedEntries((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => {
     checkAuth().finally(() => setIsInitialized(true));
@@ -87,6 +103,19 @@ export default function ComptePage() {
       .then((data) => setBoosterHistory(data.logs || []))
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
+  }, [token]);
+
+  // Fetch badges
+  useEffect(() => {
+    if (!token) return;
+    setBadgesLoading(true);
+    fetch('/api/badges', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setUserBadges(data.badges || []))
+      .catch(() => {})
+      .finally(() => setBadgesLoading(false));
   }, [token]);
 
   // Check push subscription status on mount + browser permission
@@ -538,6 +567,35 @@ export default function ComptePage() {
         </div>
       </section>
 
+      {/* Quests */}
+      <section className={styles.section}>
+        <DailyQuestsWidget />
+      </section>
+
+      {/* Badges / Succès */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Mes Succès</h2>
+        {badgesLoading ? (
+          <p className={styles.loading}>Chargement...</p>
+        ) : (
+          <div className={styles.badgesGrid}>
+            {userBadges.map((badge) => (
+              <div
+                key={badge.id}
+                className={styles.badgeItem}
+                style={{ opacity: badge.unlocked ? 1 : 0.4, filter: badge.unlocked ? 'none' : 'grayscale(1)' }}
+              >
+                <span className={styles.badgeIcon}>{badge.icon}</span>
+                <div>
+                  <p className={styles.badgeName}>{badge.name}</p>
+                  <p className={styles.badgeDesc}>{badge.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Booster History */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Historique des boosters</h2>
@@ -547,27 +605,47 @@ export default function ComptePage() {
           <p className={styles.pickerEmpty}>Aucun booster ouvert pour le moment.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-            {boosterHistory.slice(0, 10).map((entry) => (
-              <div key={entry.id} className={styles.historyCard}>
-                <div className={styles.historyHeader}>
-                  <Package size={16} />
-                  <span className={styles.historyDate}>
-                    {new Date(entry.createdAt).toLocaleDateString('fr-FR', {
-                      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-                <div className={styles.historyCardsRow}>
-                  {entry.cards.map((card) => (
-                    <div key={card.id} className={styles.historyCardItem}>
-                      <Image src={card.photo} alt={card.firstName} width={50} height={70}
-                        style={{ width: '100%', height: 'auto', borderRadius: '4px' }} />
-                      <span className={styles.historyCardName}>{card.firstName} {card.lastName}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {boosterHistory.slice(0, 10).map((entry) => {
+              const isExpanded = expandedEntries.has(entry.id);
+              const displayCards = isExpanded ? entry.cards : entry.cards.slice(0, 5);
+              return (
+                <motion.div
+                  key={entry.id}
+                  layout
+                  className={styles.historyCard}
+                >
+                  <div className={styles.historyHeader}>
+                    <Package size={16} />
+                    <span className={styles.historyDate}>
+                      {new Date(entry.createdAt).toLocaleDateString('fr-FR', {
+                        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  <div className={styles.historyCardsRow}>
+                    {displayCards.map((card) => (
+                      <div key={card.id} className={styles.historyCardItem}>
+                        <Image src={card.photo} alt={card.firstName} width={50} height={70}
+                          style={{ width: '100%', height: 'auto', borderRadius: '4px' }} />
+                        <span className={styles.historyCardName}>{card.firstName} {card.lastName}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {entry.cards.length > 5 && (
+                    <button
+                      onClick={() => toggleExpanded(entry.id)}
+                      className={styles.expandBtn}
+                    >
+                      {isExpanded ? (
+                        <><ChevronUp size={14} /> Réduire</>
+                      ) : (
+                        <><ChevronDown size={14} /> Voir les {entry.cards.length} cartes</>
+                      )}
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })}
             {boosterHistory.length > 10 && (
               <p style={{ color: 'var(--text-soft)', fontSize: '0.85rem', textAlign: 'center' }}>
                 + {boosterHistory.length - 10} ouverture(s) plus ancienne(s)

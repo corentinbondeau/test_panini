@@ -470,6 +470,73 @@
   background: var(--club-blue-600, #1f4f91);
 }
 
+/* Badges grid */
+
+.badgesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .badgesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.badgeItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--club-blue-800), var(--club-blue-900));
+  border: 1px solid var(--club-blue-700);
+}
+
+.badgeIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.badgeName {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.badgeDesc {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: var(--text-soft);
+}
+
+/* Expand button */
+
+.expandBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: var(--club-blue-700);
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.expandBtn:hover {
+  background: var(--club-blue-600);
+}
+
 /* Loading */
 
 .loading {
