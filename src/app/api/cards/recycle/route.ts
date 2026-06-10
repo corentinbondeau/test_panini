@@ -3,8 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { getCardsByCollection } from '@/data/clubCards';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
-import { updateQuestProgress } from '@/lib/quests';
-import { checkAndUnlockBadges } from '@/lib/badges';
+import { trackUserActivity } from '@/lib/tracking';
 import { getActiveEvent } from '@/lib/events';
 
 export const dynamic = 'force-dynamic';
@@ -116,19 +115,11 @@ export async function POST(request: NextRequest) {
       data: { cards: currentCards, cardDates: currentCardDates },
     });
 
-    // Track stats and quest progress (use original ratio for recycling count)
-    await prisma.user.update({
-      where: { id: decoded.userId },
-      data: { totalRecycles: { increment: RECYCLE_RATIOS[rarity] } },
-    });
-    await updateQuestProgress(decoded.userId, 'recycle_count', RECYCLE_RATIOS[rarity]);
-
-    // Economy: reward tokens and dust (poussiere d'etoile)
+    // Centralised tracking: increment totalRecycles, check badges, update quests
+    const newBadges = await trackUserActivity(decoded.userId, 'RECYCLE_CARD', RECYCLE_RATIOS[rarity]);
     const tokensReward = RECYCLE_RATIOS[rarity] * 2; // example: 5 -> 10 tokens
     const dustReward = Math.max(1, Math.round(RECYCLE_RATIOS[rarity] / 5));
     await prisma.user.update({ where: { id: decoded.userId }, data: { tokens: { increment: tokensReward }, dust: { increment: dustReward } } });
-
-    const newBadges = await checkAndUnlockBadges(decoded.userId);
 
     return NextResponse.json({
       card: {

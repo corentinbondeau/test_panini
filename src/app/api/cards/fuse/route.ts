@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { DEFAULT_COLLECTION_ID } from '@/data/cards';
-import { checkAndUnlockBadges } from '@/lib/badges';
+import { trackUserActivity } from '@/lib/tracking';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Check for newly unlocked badges
-    const newBadges = await checkAndUnlockBadges(decoded.userId);
+    // Centralised tracking: increment totalFusionsDone, check badges
+    const newBadges = await trackUserActivity(decoded.userId, 'FUSE_CARD', 1);
 
     return NextResponse.json({
       success: true,

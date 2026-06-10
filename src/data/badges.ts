@@ -13,6 +13,7 @@ export type UserStats = {
   totalCardsObtained: number;
   currentStreak: number;
   totalTrades: number;
+  totalFusionsDone: number;
 };
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
@@ -120,5 +121,26 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'Realise 100 echanges',
     icon: '🏅',
     condition: (s) => s.totalTrades >= 100,
+  },
+  {
+    id: 'first_fusion',
+    name: 'Artisan',
+    description: 'Realise ta premiere fusion',
+    icon: '✨',
+    condition: (s) => s.totalFusionsDone >= 1,
+  },
+  {
+    id: 'fusion_10',
+    name: 'Alchimiste',
+    description: 'Realise 10 fusions',
+    icon: '🔮',
+    condition: (s) => s.totalFusionsDone >= 10,
+  },
+  {
+    id: 'fusion_50',
+    name: 'Maitre des fusions',
+    description: 'Realise 50 fusions',
+    icon: '💎',
+    condition: (s) => s.totalFusionsDone >= 50,
   },
 ];

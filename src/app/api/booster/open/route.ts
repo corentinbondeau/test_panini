@@ -4,9 +4,8 @@ import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { checkAndResetQuota, incrementBoosterCount, MAX_BOOSTERS_PER_DAY } from '@/lib/quota';
 import { getCardsByCollection } from '@/data/clubCards';
 import { checkAndUpdateStreak } from '@/lib/streak';
-import { updateQuestProgress } from '@/lib/quests';
-import { checkAndUnlockBadges } from '@/lib/badges';
 import { getActiveEvent } from '@/lib/events';
+import { trackUserActivity } from '@/lib/tracking';
 
 export const dynamic = 'force-dynamic';
 
@@ -211,22 +210,18 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: decoded.userId },
       data: {
-        totalBoostersOpened: { increment: 1 },
         totalCardsObtained: { increment: draws.length },
         totalLegendaries: { increment: legendaryCount },
       },
     });
 
-    // Update quest progress (both permanent QUEST_DEFINITIONS and daily/fallback)
-    await updateQuestProgress(decoded.userId, 'booster_count', 1);
+    // Centralised tracking: increment totalBoostersOpened, check badges, update quests
+    const newBadges = await trackUserActivity(decoded.userId, 'OPEN_BOOSTER', 1);
 
     // Fetch refreshed quest progress for the frontend
     const refreshedQuests = await prisma.userQuest.findMany({
       where: { userId: decoded.userId },
     });
-
-    // Check for new badges
-    const newBadges = await checkAndUnlockBadges(decoded.userId);
 
     // Add weekly XP to clan
     const clanMember = await prisma.clanMember.findFirst({ where: { userId: decoded.userId } });

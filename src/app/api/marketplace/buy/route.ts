@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
-import { checkAndUnlockBadges } from '@/lib/badges';
+import { trackUserActivity } from '@/lib/tracking';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,12 +119,8 @@ export async function POST(request: NextRequest) {
       return { success: true, cardId: listing.cardId, price: listing.price };
     });
 
-    // Update buyer stats and check badges
-    await prisma.user.update({
-      where: { id: decoded.userId },
-      data: { totalCardsObtained: { increment: 1 } },
-    });
-    const newBadges = await checkAndUnlockBadges(decoded.userId);
+    // Centralised tracking: increment totalCardsObtained, check badges
+    const newBadges = await trackUserActivity(decoded.userId, 'BUY_MARKETPLACE', 1);
 
     return NextResponse.json({ ...result, newBadges });
   } catch (error) {
