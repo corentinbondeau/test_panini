@@ -1,5 +1,5 @@
 .page {
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 1rem;
   display: grid;
@@ -352,6 +352,73 @@
   padding: 0.5rem 1.5rem;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+/* Card Back Previews */
+
+.cardBackGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cardBackItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: var(--club-blue-900);
+  border: 1px solid var(--club-blue-700);
+  transition: border-color 0.2s;
+}
+
+.cardBackActive {
+  border-color: var(--club-yellow-500);
+  box-shadow: 0 0 12px rgba(243, 198, 35, 0.15);
+}
+
+.cardBackPreview {
+  width: 96px;
+  height: 68px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.cardBackPreview:hover {
+  transform: scale(1.05);
+}
+
+.cardBackPattern {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.cardBackLabel {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.smallBtn {
+  background: var(--club-blue-700);
+  color: var(--text-main);
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.smallBtn:hover {
+  background: var(--club-blue-600, #1f4f91);
 }
 
 /* Loading */

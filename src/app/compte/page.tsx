@@ -327,7 +327,7 @@ export default function ComptePage() {
       {/* Showcase (vitrine) */}
       <section className={styles.section} style={{ marginTop: '1rem' }}>
         <h2 className={styles.sectionTitle}>Vitrine (5 emplacements)</h2>
-        <p className={styles.toggleDesc}>Epinglez jusqu'à 5 cartes visibles par tous.</p>
+        <p className={styles.toggleDesc}>Epinglez jusqu&apos;à 5 cartes visibles par tous.</p>
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           {Array.from({ length: 5 }).map((_, idx) => {
             const cardId = (user?.showcase && (user.showcase as string[])[idx]) || null;
@@ -382,25 +382,40 @@ export default function ComptePage() {
       {/* Card backs */}
       <section className={styles.section} style={{ marginTop: '1rem' }}>
         <h2 className={styles.sectionTitle}>Dos de cartes</h2>
-        <p className={styles.toggleDesc}>Choisissez un design pour l'animation d'ouverture.</p>
-        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          {['default', 'retro', 'neon', 'gold'].map((back) => {
-            const unlocked = (user.unlockedCardBacks || []).includes(back);
-            const active = user.activeCardBack === back;
+        <p className={styles.toggleDesc}>Choisissez un design pour l&apos;animation d&apos;ouverture.</p>
+        <div className={styles.cardBackGrid}>
+          {[
+            { id: 'default', label: 'Classique', gradient: 'linear-gradient(135deg, #0b1f3f, #133566)', pattern: '⚽', border: '2px solid var(--club-yellow-500)' },
+            { id: 'retro', label: 'Rétro', gradient: 'linear-gradient(135deg, #2d1b00, #8b4513)', pattern: '★', border: '2px solid #d4a574' },
+            { id: 'neon', label: 'Néon', gradient: 'linear-gradient(135deg, #0a0a2e, #1a0a3e)', pattern: '✦', border: '2px solid #00ffff', boxShadow: '0 0 12px rgba(0,255,255,0.4)' },
+            { id: 'gold', label: 'Doré', gradient: 'linear-gradient(135deg, #3d2b00, #8b7500)', pattern: '👑', border: '2px solid #ffd700', boxShadow: '0 0 12px rgba(255,215,0,0.4)' },
+          ].map((back) => {
+            const unlocked = (user.unlockedCardBacks || []).includes(back.id) || back.id === 'default';
+            const active = user.activeCardBack === back.id;
             return (
-              <div key={back} style={{ textAlign: 'center' }}>
-                <div style={{ width: 80, height: 60, borderRadius: 6, background: active ? 'linear-gradient(90deg,#f6e05e,#f97316)' : '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>{back}</div>
+              <div key={back.id} className={`${styles.cardBackItem} ${active ? styles.cardBackActive : ''}`}>
+                <div
+                  className={styles.cardBackPreview}
+                  style={{
+                    background: back.gradient,
+                    border: active ? '2px solid var(--club-yellow-500)' : back.border,
+                    boxShadow: active ? '0 0 16px rgba(243,198,35,0.4)' : back.boxShadow || 'none',
+                  }}
+                >
+                  <span className={styles.cardBackPattern}>{back.pattern}</span>
+                </div>
+                <span className={styles.cardBackLabel}>{back.label}</span>
                 <div style={{ marginTop: 6 }}>
                   {unlocked ? (
                     <button
                       onClick={async () => {
-                        await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ activeCardBack: back }) });
+                        await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ activeCardBack: back.id }) });
                         window.location.reload();
                       }}
-                      className={styles.submitBtn}
+                      className={styles.smallBtn}
                     >{active ? 'Actif' : 'Appliquer'}</button>
                   ) : (
-                    <button disabled className={styles.submitBtn} style={{ opacity: 0.6 }}>Verrouillé</button>
+                    <button disabled className={styles.smallBtn} style={{ opacity: 0.5 }}>🔒 Verrouillé</button>
                   )}
                 </div>
               </div>
