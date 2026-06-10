@@ -6,8 +6,9 @@ import { useCollectionSelectors } from '@/store/collectionStore';
 import { CLUB_CARDS } from '@/data/clubCards';
 import Image from 'next/image';
 import AvatarBorder from '@/components/AvatarBorder';
+import { ShowcaseEditor } from '@/components/showcase/ShowcaseEditor';
 import Link from 'next/link';
-import { Eye, EyeOff, Package } from 'lucide-react';
+import { Eye, EyeOff, Package, Edit3, BarChart3 } from 'lucide-react';
 import styles from './page.module.css';
 
 interface BoosterHistoryEntry {
@@ -47,6 +48,9 @@ export default function ComptePage() {
   // Public album state
   const [isPublicAlbum, setIsPublicAlbum] = useState(false);
   const [publicAlbumLoading, setPublicAlbumLoading] = useState(false);
+
+  // Showcase editor state
+  const [showShowcaseEditor, setShowShowcaseEditor] = useState(false);
 
   // Booster history state
   const [boosterHistory, setBoosterHistory] = useState<BoosterHistoryEntry[]>([]);
@@ -275,7 +279,7 @@ export default function ComptePage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 text-base">
+    <main className={`${styles.pageWrapper} text-base`}>
       <div className={styles.page}>
       <h1 className={styles.title}>Mon compte</h1>
 
@@ -326,58 +330,47 @@ export default function ComptePage() {
 
       {/* Showcase (vitrine) */}
       <section className={styles.section} style={{ marginTop: '1rem' }}>
-        <h2 className={styles.sectionTitle}>Vitrine (5 emplacements)</h2>
-        <p className={styles.toggleDesc}>Epinglez jusqu&apos;à 5 cartes visibles par tous.</p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+        <div className="flex items-center justify-between">
+          <h2 className={styles.sectionTitle}>Vitrine (5 emplacements)</h2>
+          <button
+            onClick={() => setShowShowcaseEditor(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--club-yellow-500)] text-[var(--club-blue-950)] hover:opacity-90 transition-opacity"
+          >
+            <Edit3 size={14} />
+            Modifier
+          </button>
+        </div>
+        <p className={styles.toggleDesc}>Épinglez jusqu&apos;à 5 cartes visibles par tous.</p>
+        <div className={styles.showcaseGrid}>
           {Array.from({ length: 5 }).map((_, idx) => {
             const cardId = (user?.showcase && (user.showcase as string[])[idx]) || null;
             const cardMeta = CLUB_CARDS.find((c) => c.id === cardId);
             return (
-              <div key={idx} style={{ width: 80, textAlign: 'center' }}>
+              <div key={idx} style={{ textAlign: 'center' }}>
                 {cardMeta ? (
-                  <div style={{ cursor: 'pointer' }}>
-                    <img src={cardMeta.photo} alt="" style={{ width: 80, height: 60, borderRadius: 6 }} />
-                    <div style={{ fontSize: '0.8rem' }}>{cardMeta.firstName}</div>
-                    <button
-                      onClick={async () => {
-                        // remove this card from showcase
-                        const next = (user.showcase as string[]).filter((id: string) => id !== cardMeta.id);
-                        await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ showcase: next }) });
-                        window.location.reload();
-                      }}
-                      className={styles.submitBtn}
-                    >Retirer</button>
+                  <div>
+                    <img src={cardMeta.photo} alt="" style={{ width: '100%', maxWidth: 80, height: 'auto', aspectRatio: '4/3', borderRadius: 6, objectFit: 'cover' }} />
+                    <div style={{ fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cardMeta.firstName}</div>
                   </div>
                 ) : (
-                  <div style={{ border: '1px dashed var(--border)', borderRadius: 6, padding: 8 }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-soft)' }}>Vide</div>
+                  <div style={{ border: '1px dashed var(--border)', borderRadius: 6, padding: '12px 4px' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-soft)' }}>Vide</div>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-
-        {/* Quick pin from owned cards */}
-        <div style={{ marginTop: 12 }}>
-          <p className={styles.pickerLabel}>Épingler depuis vos cartes :</p>
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingTop: 8 }}>
-            {ownedCards.slice(0, 30).map((c) => (
-              <button
-                key={c.id}
-                onClick={async () => {
-                  const next = Array.from(new Set([...(user.showcase || []), c.id])).slice(0, 5);
-                  await fetch('/api/auth/update', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ showcase: next }) });
-                  window.location.reload();
-                }}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
-              >
-                <img src={c.photo} alt="" style={{ width: 60, height: 44, borderRadius: 6 }} />
-              </button>
-            ))}
-          </div>
-        </div>
       </section>
+
+      {showShowcaseEditor && (
+        <ShowcaseEditor
+          initialShowcase={(user.showcase as string[]) || []}
+          ownedCards={ownedCards}
+          onClose={() => setShowShowcaseEditor(false)}
+          onSaved={() => { setShowShowcaseEditor(false); window.location.reload(); }}
+        />
+      )}
 
       {/* Card backs */}
       <section className={styles.section} style={{ marginTop: '1rem' }}>
@@ -553,7 +546,7 @@ export default function ComptePage() {
         ) : boosterHistory.length === 0 ? (
           <p className={styles.pickerEmpty}>Aucun booster ouvert pour le moment.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             {boosterHistory.slice(0, 10).map((entry) => (
               <div key={entry.id} className={styles.historyCard}>
                 <div className={styles.historyHeader}>
@@ -623,6 +616,19 @@ export default function ComptePage() {
             <span className={styles.toggleKnob} />
           </button>
         </div>
+      </section>
+
+      {/* Wrapped link */}
+      <section className={styles.section}>
+        <Link
+          href="/user/wrapped"
+          className={styles.sectionTitle}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'var(--club-yellow-500)' }}
+        >
+          <BarChart3 size={18} />
+          Voir mon bilan de saison
+        </Link>
+        <p className={styles.toggleDesc}>Découvre tes statistiques mensuelles détaillées.</p>
       </section>
 
       {/* Logout */}

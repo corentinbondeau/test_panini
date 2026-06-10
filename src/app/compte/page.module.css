@@ -1,9 +1,18 @@
 .page {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 0 1rem;
   display: grid;
   gap: 24px;
+}
+
+.pageWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .title {
@@ -78,6 +87,34 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 8px;
+}
+
+.showcaseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .showcaseGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .showcaseGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.ownedCardsScroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .pickerCard {
@@ -358,9 +395,21 @@
 
 .cardBackGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-top: 8px;
+}
+
+@media (min-width: 480px) {
+  .cardBackGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .cardBackGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .cardBackItem {
