@@ -217,8 +217,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update quest progress
+    // Update quest progress (both permanent QUEST_DEFINITIONS and daily/fallback)
     await updateQuestProgress(decoded.userId, 'booster_count', 1);
+
+    // Fetch refreshed quest progress for the frontend
+    const refreshedQuests = await prisma.userQuest.findMany({
+      where: { userId: decoded.userId },
+    });
 
     // Check for new badges
     const newBadges = await checkAndUnlockBadges(decoded.userId);
@@ -241,6 +246,13 @@ export async function POST(request: NextRequest) {
         maxBoostersPerDay: MAX_BOOSTERS_PER_DAY,
       },
       newBadges,
+      quests: refreshedQuests.map(q => ({
+        id: q.questId,
+        progress: q.progress,
+        target: q.target,
+        completed: q.completed,
+        rewardClaimed: q.rewardClaimed,
+      })),
     });
   } catch (error) {
     console.error('Open booster error:', error);

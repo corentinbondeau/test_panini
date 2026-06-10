@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { QUEST_DEFINITIONS, QuestDefinition } from '@/data/quests';
+import { FALLBACK_QUESTS } from '@/data/fallbackQuests';
 
 export type QuestWithProgress = QuestDefinition & {
   progress: number;
@@ -35,7 +36,6 @@ export async function getUserQuests(userId: string, collectionSlug?: string): Pr
       def.type,
     );
 
-    // Sync progress automatically
     const syncedProgress = Math.max(progress, currentCount);
 
     results.push({
@@ -84,10 +84,55 @@ export async function claimQuestReward(
     data: { rewardClaimed: true },
   });
 
-  // Give reward boosters: remove 1 from daily quota (they got a free pack)
-  // For now, we just return the reward info and let the frontend integrate it
-
   return { success: true, rewardBoosters: quest.rewardBoosters };
+}
+
+async function atomicUpdateOrCreate(
+  userId: string,
+  questId: string,
+  target: number,
+  increment: number,
+): Promise<void> {
+  const { count } = await prisma.userQuest.updateMany({
+    where: {
+      userId,
+      questId,
+      completed: false,
+      rewardClaimed: false,
+    },
+    data: { progress: { increment } },
+  });
+
+  if (count === 0) {
+    const existing = await prisma.userQuest.findUnique({
+      where: { userId_questId: { userId, questId } },
+    });
+    if (!existing) {
+      await prisma.userQuest.create({
+        data: {
+          userId,
+          questId,
+          progress: increment,
+          target,
+          completed: false,
+        },
+      });
+      console.log(`[quests] created ${questId} progress=${increment}`);
+    } else {
+      console.log(`[quests] ${questId} skipped (already completed/claimed)`);
+    }
+  } else {
+    console.log(`[quests] ${questId} +${increment}`);
+    await prisma.userQuest.updateMany({
+      where: {
+        userId,
+        questId,
+        progress: { gte: target },
+        completed: false,
+      },
+      data: { completed: true },
+    });
+  }
 }
 
 export async function updateQuestProgress(
@@ -95,32 +140,21 @@ export async function updateQuestProgress(
   type: string,
   increment: number,
 ): Promise<void> {
+  console.log(`[updateQuestProgress] userId=${userId} type=${type} increment=${increment}`);
+
   const matchingDefs = QUEST_DEFINITIONS.filter((d) => d.type === type);
-  if (matchingDefs.length === 0) return;
+  console.log(`[updateQuestProgress] defs:`, matchingDefs.map(d => d.id));
 
   for (const def of matchingDefs) {
-    const existing = await prisma.userQuest.findUnique({
-      where: { userId_questId: { userId, questId: def.id } },
-    });
-
-    if (existing?.rewardClaimed) continue;
-
-    const newProgress = (existing?.progress ?? 0) + increment;
-    const completed = newProgress >= def.target;
-
-    await prisma.userQuest.upsert({
-      where: { userId_questId: { userId, questId: def.id } },
-      create: {
-        userId,
-        questId: def.id,
-        progress: newProgress,
-        target: def.target,
-        completed,
-      },
-      update: {
-        progress: newProgress,
-        completed: completed || existing?.completed,
-      },
-    });
+    await atomicUpdateOrCreate(userId, def.id, def.target, increment);
   }
+
+  const fallbackMatching = FALLBACK_QUESTS.filter((q) => q.type === type);
+  console.log(`[updateQuestProgress] fallback:`, fallbackMatching.map(q => q.id));
+
+  for (const fq of fallbackMatching) {
+    await atomicUpdateOrCreate(userId, fq.id, fq.target, increment);
+  }
+
+  console.log(`[updateQuestProgress] done`);
 }

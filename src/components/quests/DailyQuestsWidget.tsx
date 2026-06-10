@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins, CheckCircle2, Circle, Sparkles } from 'lucide-react';
+import { Coins, CheckCircle2, Circle, Sparkles, Gift } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useQuestStore } from '@/store/questStore';
 
 type Quest = {
   id: string;
@@ -12,6 +13,7 @@ type Quest = {
   type: string;
   target: number;
   rewardTokens: number;
+  rewardBoosters: number;
   progress: number;
   completed: boolean;
   rewardClaimed: boolean;
@@ -23,6 +25,7 @@ export function DailyQuestsWidget() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const { refreshTrigger, clearRefreshTrigger } = useQuestStore();
 
   const fetchQuests = useCallback(() => {
     if (!token) {
@@ -44,6 +47,13 @@ export function DailyQuestsWidget() {
   useEffect(() => {
     fetchQuests();
   }, [fetchQuests]);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchQuests();
+      clearRefreshTrigger();
+    }
+  }, [refreshTrigger, fetchQuests, clearRefreshTrigger]);
 
   const handleClaim = async (questId: string) => {
     if (!token) return;
@@ -142,10 +152,15 @@ export function DailyQuestsWidget() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className="flex flex-col items-center gap-1 flex-shrink-0">
                 <div className="flex items-center gap-1 text-[10px] font-bold text-[var(--club-yellow-500)]">
-                  <Coins size={10} />
-                  <span>5</span>
+                  {q.rewardTokens > 0 ? (
+                    <><Coins size={10} /><span>{q.rewardTokens}</span></>
+                  ) : q.rewardBoosters > 0 ? (
+                    <><Gift size={10} /><span>{q.rewardBoosters}</span></>
+                  ) : (
+                    <><Coins size={10} /><span>{q.rewardTokens}</span></>
+                  )}
                 </div>
                 {q.rewardClaimed ? (
                   <span className="text-[10px] text-green-400 font-semibold">Reclamee</span>

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCollectionStore, BoosterCardDraw } from "@/store/collectionStore";
 import { useAuthStore } from "@/store/authStore";
+import { useQuestStore } from "@/store/questStore";
 import { COLLECTIONS, CardRarity } from "@/data/cards";
 import { getCardsByCollection } from "@/data/clubCards";
 import { RarityBadge } from "@/components/cards/RarityBadge";
@@ -26,6 +27,7 @@ export default function BoosterPage() {
   const setQuantities = useCollectionStore((s) => s.setQuantities);
   const storeActiveCollection = useCollectionStore((s) => s.activeCollectionId);
   const setActiveCollectionId = useCollectionStore((s) => s.setActiveCollectionId);
+  const triggerQuestRefresh = useQuestStore((s) => s.triggerRefresh);
   const [draws, setDraws] = useState<BoosterCardDraw[]>([]);
   const [phase, setPhase] = useState<"idle" | "loading" | "shake" | "flash" | "reveal" | "done" | "mass-done">("idle");
   const [revealedCount, setRevealedCount] = useState(0);
@@ -85,6 +87,7 @@ export default function BoosterPage() {
 
     try {
       const nextDraws = await openBoosterPackAsync(selectedCollectionId, token);
+      triggerQuestRefresh();
       const rarityOrder: Record<string, number> = { 'COMMUNE': 0, 'RARE': 1, 'LEGENDAIRE': 2 };
       nextDraws.sort((a, b) => (rarityOrder[a.card.rarity] ?? 0) - (rarityOrder[b.card.rarity] ?? 0));
       setDraws(nextDraws);
@@ -133,6 +136,7 @@ export default function BoosterPage() {
       const data = await res.json();
       const nextDraws: BoosterCardDraw[] = data.cards;
 
+      triggerQuestRefresh();
       setDraws(nextDraws);
       setQuantities(data.quantities || {});
 
