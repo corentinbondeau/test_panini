@@ -12,6 +12,7 @@ export async function checkAndUnlockBadges(userId: string): Promise<string[]> {
       totalCardsObtained: true,
       totalTrades: true,
       totalFusionsDone: true,
+      totalMarketPurchases: true,
       badges: true,
     },
   });
@@ -27,6 +28,7 @@ export async function checkAndUnlockBadges(userId: string): Promise<string[]> {
     currentStreak: user.currentStreak,
     totalTrades: user.totalTrades,
     totalFusionsDone: user.totalFusionsDone,
+    totalMarketPurchases: user.totalMarketPurchases,
   };
 
   const newlyUnlocked: string[] = [];

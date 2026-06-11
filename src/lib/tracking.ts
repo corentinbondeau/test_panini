@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { BADGE_DEFINITIONS } from '@/data/badges';
 import { updateQuestProgress } from '@/lib/quests';
 
-export type ActionType = 'OPEN_BOOSTER' | 'FUSE_CARD' | 'RECYCLE_CARD' | 'BUY_MARKETPLACE' | 'TRADE_CARD';
+export type ActionType = 'OPEN_BOOSTER' | 'FUSE_CARD' | 'RECYCLE_CARD' | 'BUY_MARKETPLACE' | 'TRADE_CARD' | 'MARKET_PURCHASE';
 
 type ActionMapping = {
   statField: keyof UserStatSelect | null;
@@ -17,6 +17,7 @@ type UserStatSelect = {
   totalCardsObtained: true;
   totalTrades: true;
   totalFusionsDone: true;
+  totalMarketPurchases: true;
 };
 
 const ACTION_MAP: Record<ActionType, ActionMapping> = {
@@ -25,6 +26,7 @@ const ACTION_MAP: Record<ActionType, ActionMapping> = {
   RECYCLE_CARD: { statField: 'totalRecycles', questType: 'recycle_count' },
   BUY_MARKETPLACE: { statField: 'totalCardsObtained', questType: null },
   TRADE_CARD: { statField: 'totalTrades', questType: 'trade_count' },
+  MARKET_PURCHASE: { statField: 'totalMarketPurchases', questType: null },
 };
 
 const STAT_SELECT: UserStatSelect = {
@@ -34,6 +36,7 @@ const STAT_SELECT: UserStatSelect = {
   totalCardsObtained: true,
   totalTrades: true,
   totalFusionsDone: true,
+  totalMarketPurchases: true,
 };
 
 /**
@@ -85,6 +88,7 @@ export async function trackUserActivity(
     totalCardsObtained: user.totalCardsObtained,
     totalTrades: user.totalTrades,
     totalFusionsDone: user.totalFusionsDone,
+    totalMarketPurchases: user.totalMarketPurchases,
     currentStreak: 0,
   };
 

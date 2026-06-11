@@ -48,12 +48,16 @@ model User {
   tokens          Int        @default(0)
 
   // Total stats for badges
-  totalRecycles        Int     @default(0)
-  totalBoostersOpened  Int     @default(0)
-  totalLegendaries     Int     @default(0)
-  totalCardsObtained   Int     @default(0)
-  totalTrades          Int     @default(0)
-  totalFusionsDone     Int     @default(0)
+  totalRecycles         Int     @default(0)
+  totalBoostersOpened   Int     @default(0)
+  totalLegendaries      Int     @default(0)
+  totalCardsObtained    Int     @default(0)
+  totalTrades           Int     @default(0)
+  totalFusionsDone      Int     @default(0)
+  totalMarketPurchases  Int     @default(0)
+
+  // Daily quests stored as embedded JSON (replaced atomically via $set)
+  dailyQuests         Json     @default("[]")
 
   // Achievements & badges
   badges          Json       @default("[]")

@@ -14,6 +14,7 @@ export type UserStats = {
   currentStreak: number;
   totalTrades: number;
   totalFusionsDone: number;
+  totalMarketPurchases: number;
 };
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
@@ -142,5 +143,26 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'Realise 50 fusions',
     icon: '💎',
     condition: (s) => s.totalFusionsDone >= 50,
+  },
+  {
+    id: 'first_market_purchase',
+    name: 'Acheteur debutant',
+    description: 'Effectue ton premier achat sur le marche',
+    icon: '🛒',
+    condition: (s) => s.totalMarketPurchases >= 1,
+  },
+  {
+    id: 'market_10',
+    name: 'Habitué du marche',
+    description: 'Effectue 10 achats sur le marche',
+    icon: '🛍️',
+    condition: (s) => s.totalMarketPurchases >= 10,
+  },
+  {
+    id: 'market_50',
+    name: 'Magnat du marche',
+    description: 'Effectue 50 achats sur le marche',
+    icon: '💼',
+    condition: (s) => s.totalMarketPurchases >= 50,
   },
 ];

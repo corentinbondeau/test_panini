@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
         totalCardsObtained: true,
         totalTrades: true,
         totalFusionsDone: true,
+        totalMarketPurchases: true,
         currentStreak: true,
         badges: true,
       },
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
       totalCardsObtained: user.totalCardsObtained,
       totalTrades: user.totalTrades,
       totalFusionsDone: user.totalFusionsDone,
+      totalMarketPurchases: user.totalMarketPurchases,
       currentStreak: user.currentStreak,
     };
 
