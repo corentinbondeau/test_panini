@@ -22,7 +22,7 @@ type Listing = {
 };
 
 export default function MarketplacePage() {
-  const { user, checkAuth, token } = useAuthStore();
+  const { user, checkAuth, token, setUser } = useAuthStore();
   const { quantities } = useCollectionSelectors();
   const setQuantities = useCollectionStore((s) => s.setQuantities);
   const loadCollection = useCollectionStore((s) => s.loadFromServer);
@@ -89,6 +89,10 @@ export default function MarketplacePage() {
       if (!res.ok) throw new Error(data.error);
       setSuccess('Carte achetée avec succès !');
       setListings((prev) => prev.filter((l) => l.id !== listingId));
+      // Met à jour le solde tokens dans le store global (navbar réactive)
+      if (typeof data.tokens === 'number' && user) {
+        setUser({ ...user, tokens: data.tokens });
+      }
       loadCollection(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur');

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ObjectId } from 'bson';
 import { prisma } from '@/lib/prisma';
 import { verifyToken, getTokenFromHeader } from '@/lib/auth';
 import { trackUserActivity } from '@/lib/tracking';
@@ -24,105 +25,152 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'listingId requis' }, { status: 400 });
     }
 
-    // Use a transaction for atomicity
-    const result = await prisma.$transaction(async (tx) => {
-      const listing = await tx.marketplaceListing.findUnique({
-        where: { id: listingId },
-      });
+    const buyerObjectId = new ObjectId(decoded.userId);
+    const listingObjectId = new ObjectId(listingId);
 
-      if (!listing || listing.status !== 'active') {
-        throw new Error('Annonce introuvable ou déjà vendue');
-      }
-
-      if (listing.sellerId === decoded.userId) {
-        throw new Error('Vous ne pouvez pas acheter votre propre annonce');
-      }
-
-      // Check buyer has enough tokens
-      const buyer = await tx.user.findUnique({
-        where: { id: decoded.userId },
-        select: { tokens: true },
-      });
-
-      if (!buyer || buyer.tokens < listing.price) {
-        throw new Error('Tokens insuffisants');
-      }
-
-      // Transfer tokens: buyer -> seller
-      await tx.user.update({
-        where: { id: decoded.userId },
-        data: { tokens: { decrement: listing.price } },
-      });
-
-      await tx.user.update({
-        where: { id: listing.sellerId },
-        data: { tokens: { increment: listing.price } },
-      });
-
-      // Find the seller's collection to deduct the card
-      const sellerCollections = await tx.userCollection.findMany({
-        where: { userId: listing.sellerId },
-      });
-
-      let cardTransferred = false;
-      for (const col of sellerCollections) {
-        const cards = (col.cards as Record<string, number>) || {};
-        if (cards[listing.cardId] && cards[listing.cardId] > 0) {
-          cards[listing.cardId] -= 1;
-          if (cards[listing.cardId] <= 0) delete cards[listing.cardId];
-
-          await tx.userCollection.update({
-            where: { id: col.id },
-            data: { cards },
-          });
-          cardTransferred = true;
-          break;
-        }
-      }
-
-      if (!cardTransferred) {
-        throw new Error('La carte n\'est plus disponible');
-      }
-
-      // Find buyer's collection for the same collection
-      const listingCollection = await tx.collection.findFirst({
-        where: { userCollections: { some: { userId: listing.sellerId } } },
-      });
-
-      if (listingCollection) {
-        const buyerCollection = await tx.userCollection.findUnique({
-          where: {
-            userId_collectionId: {
-              userId: decoded.userId,
-              collectionId: listingCollection.id,
-            },
-          },
-        });
-
-        if (buyerCollection) {
-          const buyerCards = (buyerCollection.cards as Record<string, number>) || {};
-          buyerCards[listing.cardId] = (buyerCards[listing.cardId] ?? 0) + 1;
-
-          await tx.userCollection.update({
-            where: { id: buyerCollection.id },
-            data: { cards: buyerCards },
-          });
-        }
-      }
-
-      // Mark listing as sold
-      await tx.marketplaceListing.update({
-        where: { id: listingId },
-        data: { status: 'sold' },
-      });
-
-      return { success: true, cardId: listing.cardId, price: listing.price };
+    // 1. Fetch listing and verify it's active
+    const listing = await prisma.marketplaceListing.findUnique({
+      where: { id: listingId },
     });
 
-    // Centralised tracking: increment totalCardsObtained, check badges
-    const newBadges = await trackUserActivity(decoded.userId, 'BUY_MARKETPLACE', 1);
+    if (!listing || listing.status !== 'active') {
+      return NextResponse.json({ error: 'Annonce introuvable ou déjà vendue' }, { status: 400 });
+    }
 
-    return NextResponse.json({ ...result, newBadges });
+    if (listing.sellerId === decoded.userId) {
+      return NextResponse.json({ error: 'Vous ne pouvez pas acheter votre propre annonce' }, { status: 400 });
+    }
+
+    // 2. Vérification stricte du solde (lecture directe MongoDB)
+    const buyerDoc = await prisma.$runCommandRaw({
+      find: 'User',
+      filter: { _id: buyerObjectId },
+      projection: { tokens: 1 },
+      limit: 1,
+    }) as unknown as { cursor: { firstBatch: Array<{ tokens: number }> } };
+
+    const buyerTokens = (buyerDoc as any)?.cursor?.firstBatch?.[0]?.tokens ?? 0;
+
+    if (buyerTokens < listing.price) {
+      return NextResponse.json({ error: 'Fonds insuffisants' }, { status: 400 });
+    }
+
+    // 3. Opération atomique : débiter l'acheteur ($inc: -price)
+    const sellerObjectId = new ObjectId(listing.sellerId);
+
+    const debitResult = await prisma.$runCommandRaw({
+      update: 'User',
+      updates: [
+        {
+          q: {
+            _id: buyerObjectId,
+            tokens: { $gte: listing.price },
+          },
+          u: { $inc: { tokens: -listing.price } },
+        },
+      ],
+    }) as unknown as { n: number; nModified: number };
+
+    if (!debitResult || (debitResult as any).nModified === 0) {
+      return NextResponse.json({ error: 'Fonds insuffisants lors du débit' }, { status: 400 });
+    }
+
+    // 4. Créditer le vendeur
+    await prisma.$runCommandRaw({
+      update: 'User',
+      updates: [
+        {
+          q: { _id: sellerObjectId },
+          u: { $inc: { tokens: listing.price } },
+        },
+      ],
+    });
+
+    // 5. Transférer la carte : retirer du vendeur
+    const sellerCollections = await prisma.userCollection.findMany({
+      where: { userId: listing.sellerId },
+    });
+
+    let cardTransferred = false;
+    for (const col of sellerCollections) {
+      const cards = (col.cards as Record<string, number>) || {};
+      if (cards[listing.cardId] && cards[listing.cardId] > 0) {
+        cards[listing.cardId] -= 1;
+        if (cards[listing.cardId] <= 0) delete cards[listing.cardId];
+        await prisma.userCollection.update({
+          where: { id: col.id },
+          data: { cards },
+        });
+        cardTransferred = true;
+        break;
+      }
+    }
+
+    if (!cardTransferred) {
+      // Rollback tokens to buyer
+      await prisma.$runCommandRaw({
+        update: 'User',
+        updates: [
+          {
+            q: { _id: buyerObjectId },
+            u: { $inc: { tokens: listing.price } },
+          },
+        ],
+      });
+      return NextResponse.json({ error: 'La carte n\'est plus disponible' }, { status: 400 });
+    }
+
+    // 6. Ajouter la carte à la collection de l'acheteur
+    const listingCollection = await prisma.collection.findFirst({
+      where: { userCollections: { some: { userId: listing.sellerId } } },
+    });
+
+    if (listingCollection) {
+      const buyerCollection = await prisma.userCollection.findUnique({
+        where: {
+          userId_collectionId: {
+            userId: decoded.userId,
+            collectionId: listingCollection.id,
+          },
+        },
+      });
+
+      if (buyerCollection) {
+        const buyerCards = (buyerCollection.cards as Record<string, number>) || {};
+        buyerCards[listing.cardId] = (buyerCards[listing.cardId] ?? 0) + 1;
+        await prisma.userCollection.update({
+          where: { id: buyerCollection.id },
+          data: { cards: buyerCards },
+        });
+      }
+    }
+
+    // 7. Marquer l'annonce comme vendue
+    await prisma.marketplaceListing.update({
+      where: { id: listingId },
+      data: { status: 'sold' },
+    });
+
+    // 8. Lire le nouveau solde de l'acheteur
+    const updatedBuyer = await prisma.$runCommandRaw({
+      find: 'User',
+      filter: { _id: buyerObjectId },
+      projection: { tokens: 1 },
+      limit: 1,
+    }) as unknown as { cursor: { firstBatch: Array<{ tokens: number }> } };
+
+    const newTokens = (updatedBuyer as any)?.cursor?.firstBatch?.[0]?.tokens ?? 0;
+
+    // 9. Tracking badges et quêtes (MARKET_PURCHASE incrémente totalMarketPurchases)
+    const newBadges = await trackUserActivity(decoded.userId, 'MARKET_PURCHASE', 1);
+
+    return NextResponse.json({
+      success: true,
+      cardId: listing.cardId,
+      price: listing.price,
+      tokens: newTokens,
+      newBadges,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur lors de l\'achat';
     return NextResponse.json({ error: message }, { status: 400 });
