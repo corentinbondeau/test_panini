@@ -1,13 +1,22 @@
 import { ObjectId } from 'bson';
 import { prisma } from '@/lib/prisma';
 import { QUEST_DEFINITIONS, QuestDefinition } from '@/data/quests';
-import { FALLBACK_QUESTS } from '@/data/fallbackQuests';
 
 interface MongoUpdateResult {
   n: number;
   nModified: number;
   ok: number;
 }
+
+type DailyQuestEntry = {
+  questId: string;
+  description: string;
+  type: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardClaimed: boolean;
+};
 
 export type QuestWithProgress = QuestDefinition & {
   progress: number;
@@ -105,8 +114,6 @@ async function updateSingleQuest(
 ): Promise<void> {
   const userObjectId = new ObjectId(userId);
 
-  // Atomic $inc via raw MongoDB command — bypasses Prisma's ObjectId conversion
-  // to avoid the string-vs-ObjectId mismatch that causes silent 0-matches
   const result: MongoUpdateResult = (await prisma.$runCommandRaw({
     update: 'UserQuest',
     updates: [
@@ -122,9 +129,7 @@ async function updateSingleQuest(
     ],
   })) as unknown as MongoUpdateResult;
 
-  // result.n = number of documents matched by the query
   if (!result || result.n === 0) {
-    // No non-completed quest found — check if a record exists at all
     const existing = await prisma.userQuest.findUnique({
       where: { userId_questId: { userId, questId } },
     });
@@ -144,7 +149,6 @@ async function updateSingleQuest(
       console.log(`[quests] ${questId} skipped (already completed/claimed)`);
     }
   } else {
-    // Increment succeeded — check if now completed
     const updated = await prisma.userQuest.findUnique({
       where: { userId_questId: { userId, questId } },
     });
@@ -160,6 +164,50 @@ async function updateSingleQuest(
   }
 }
 
+/**
+ * Met à jour la progression des quêtes embarquées (dailyQuests) dans le User
+ * en incrémentant le champ `progress` des entrées dont le type correspond
+ * et qui ne sont ni complétées ni réclamées.
+ */
+async function updateEmbeddedDailyQuests(
+  userId: string,
+  type: string,
+  increment: number,
+): Promise<void> {
+  const userObjectId = new ObjectId(userId);
+
+  const userDoc = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { dailyQuests: true },
+  });
+
+  const dailyQuests: DailyQuestEntry[] = (userDoc?.dailyQuests as DailyQuestEntry[]) ?? [];
+  let changed = false;
+
+  for (let i = 0; i < dailyQuests.length; i++) {
+    const dq = dailyQuests[i];
+    if (dq.type === type && !dq.completed && !dq.rewardClaimed) {
+      dq.progress += increment;
+      if (dq.progress >= dq.target) {
+        dq.completed = true;
+      }
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    await prisma.$runCommandRaw({
+      update: 'User',
+      updates: [
+        {
+          q: { _id: userObjectId },
+          u: { $set: { dailyQuests } },
+        },
+      ],
+    });
+  }
+}
+
 export async function updateQuestProgress(
   userId: string,
   type: string,
@@ -167,17 +215,14 @@ export async function updateQuestProgress(
 ): Promise<void> {
   console.log(`[updateQuestProgress] userId=${userId} type=${type} inc=${increment}`);
 
-  // 1. Permanent QUEST_DEFINITIONS
+  // 1. Permanent QUEST_DEFINITIONS (UserQuest collection)
   const matchingDefs = QUEST_DEFINITIONS.filter((d) => d.type === type);
   for (const def of matchingDefs) {
     await updateSingleQuest(userId, def.id, def.target, increment);
   }
 
-  // 2. Daily / fallback quests
-  const matchingFallback = FALLBACK_QUESTS.filter((q) => q.type === type);
-  for (const fq of matchingFallback) {
-    await updateSingleQuest(userId, fq.id, fq.target, increment);
-  }
+  // 2. Quêtes quotidiennes embarquées (User.dailyQuests)
+  await updateEmbeddedDailyQuests(userId, type, increment);
 
   console.log(`[updateQuestProgress] done`);
 }
