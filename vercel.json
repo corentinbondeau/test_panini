@@ -4,5 +4,7 @@
       "path": "/api/cron",
       "schedule": "15 15 * * *"
     }
-  ]
+  ],
+  "buildCommand": "npx prisma generate && next build",
+  "installCommand": "npm install"
 }
